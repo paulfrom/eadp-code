@@ -48,4 +48,9 @@ logs/
 # GHA credentials
 gha-creds-*.json
 
+pnpm-lock.yaml
+package-lock.json
+
+.qoder/
+
 QWEN.md

@@ -1,15 +1,15 @@
 {
-  "name": "@qwen-code/qwen-code",
+  "name": "@eadp-code/eadp-code",
   "version": "0.0.11",
-  "description": "Qwen Code",
+  "description": "eadp Code",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/QwenLM/qwen-code.git"
+    "url": "git+https://github.com/paulfrom/eadp-code.git"
   },
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "qwen": "dist/index.js"
+    "eadp": "dist/index.js"
   },
   "scripts": {
     "build": "node ../../scripts/build_package.js",
