@@ -11,7 +11,7 @@ import * as os from 'os';
 
 import open from 'open';
 import { EventEmitter } from 'events';
-import { Config } from '../config/config.js';
+import type { Config } from '../config/config.js';
 import { randomUUID } from 'node:crypto';
 import {
   SharedTokenManager,
@@ -711,8 +711,6 @@ async function authWithQwenDeviceFlow(
             'polling',
             `Polling... (attempt ${attempt + 1}/${maxAttempts})`,
           );
-
-          process.stdout.write('.');
 
           // Wait with cancellation check every 100ms
           await new Promise<void>((resolve) => {

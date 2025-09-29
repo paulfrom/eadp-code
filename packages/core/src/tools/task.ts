@@ -4,10 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  BaseDeclarativeTool,
-  BaseToolInvocation,
-  Kind,
+import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
+import { ToolNames } from './tool-names.js';
+import type {
   ToolResult,
   ToolResultDisplay,
   TaskResultDisplay,
@@ -17,16 +16,21 @@ import type {
   ToolCallConfirmationDetails,
   ToolConfirmationPayload,
 } from './tools.js';
-import { Config } from '../config/config.js';
-import { SubagentManager } from '../subagents/subagent-manager.js';
-import { SubagentConfig, SubagentTerminateMode } from '../subagents/types.js';
+import type { Config } from '../config/config.js';
+import type { SubagentManager } from '../subagents/subagent-manager.js';
+import {
+  type SubagentConfig,
+  SubagentTerminateMode,
+} from '../subagents/types.js';
 import { ContextState } from '../subagents/subagent.js';
 import {
   SubAgentEventEmitter,
+  SubAgentEventType,
+} from '../subagents/subagent-events.js';
+import type {
   SubAgentToolCallEvent,
   SubAgentToolResultEvent,
   SubAgentFinishEvent,
-  SubAgentEventType,
   SubAgentErrorEvent,
   SubAgentApprovalRequestEvent,
 } from '../subagents/subagent-events.js';
@@ -43,7 +47,7 @@ export interface TaskParams {
  * for the model to choose from.
  */
 export class TaskTool extends BaseDeclarativeTool<TaskParams, ToolResult> {
-  static readonly Name: string = 'task';
+  static readonly Name: string = ToolNames.TASK;
 
   private subagentManager: SubagentManager;
   private availableSubagents: SubagentConfig[] = [];
@@ -82,16 +86,19 @@ export class TaskTool extends BaseDeclarativeTool<TaskParams, ToolResult> {
     );
 
     this.subagentManager = config.getSubagentManager();
+    this.subagentManager.addChangeListener(() => {
+      void this.refreshSubagents();
+    });
 
     // Initialize the tool asynchronously
-    this.initializeAsync();
+    this.refreshSubagents();
   }
 
   /**
    * Asynchronously initializes the tool by loading available subagents
    * and updating the description and schema.
    */
-  private async initializeAsync(): Promise<void> {
+  async refreshSubagents(): Promise<void> {
     try {
       this.availableSubagents = await this.subagentManager.listSubagents();
       this.updateDescriptionAndSchema();
@@ -99,6 +106,12 @@ export class TaskTool extends BaseDeclarativeTool<TaskParams, ToolResult> {
       console.warn('Failed to load subagents for Task tool:', error);
       this.availableSubagents = [];
       this.updateDescriptionAndSchema();
+    } finally {
+      // Update the client with the new tools
+      const geminiClient = this.config.getGeminiClient();
+      if (geminiClient) {
+        await geminiClient.setTools();
+      }
     }
   }
 
@@ -195,14 +208,6 @@ assistant: "I'm going to use the Task tool to launch the with the greeting-respo
         delete schema.properties.subagent_type.enum;
       }
     }
-  }
-
-  /**
-   * Refreshes the available subagents and updates the tool description.
-   * This can be called when subagents are added or removed.
-   */
-  async refreshSubagents(): Promise<void> {
-    await this.initializeAsync();
   }
 
   override validateToolParams(params: TaskParams): string | null {

@@ -8,12 +8,16 @@ import {
   BaseDeclarativeTool,
   BaseToolInvocation,
   Kind,
-  ToolInvocation,
-  ToolResult,
+  type ToolInvocation,
+  type ToolResult,
+  type ToolCallConfirmationDetails,
+  type ToolInfoConfirmationDetails,
+  ToolConfirmationOutcome,
 } from './tools.js';
 
+import type { Config } from '../config/config.js';
+import { ApprovalMode } from '../config/config.js';
 import { getErrorMessage } from '../utils/errors.js';
-import { Config } from '../config/config.js';
 
 interface TavilyResultItem {
   title: string;
@@ -59,6 +63,26 @@ class WebSearchToolInvocation extends BaseToolInvocation<
 
   override getDescription(): string {
     return `Searching the web for: "${this.params.query}"`;
+  }
+
+  override async shouldConfirmExecute(
+    _abortSignal: AbortSignal,
+  ): Promise<ToolCallConfirmationDetails | false> {
+    if (this.config.getApprovalMode() === ApprovalMode.AUTO_EDIT) {
+      return false;
+    }
+
+    const confirmationDetails: ToolInfoConfirmationDetails = {
+      type: 'info',
+      title: 'Confirm Web Search',
+      prompt: `Search the web for: "${this.params.query}"`,
+      onConfirm: async (outcome: ToolConfirmationOutcome) => {
+        if (outcome === ToolConfirmationOutcome.ProceedAlways) {
+          this.config.setApprovalMode(ApprovalMode.AUTO_EDIT);
+        }
+      },
+    };
+    return confirmationDetails;
   }
 
   async execute(signal: AbortSignal): Promise<WebSearchToolResult> {

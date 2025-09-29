@@ -6,18 +6,23 @@
 
 import React from 'react';
 import { Box, Text } from 'ink';
-import { IndividualToolCallDisplay, ToolCallStatus } from '../../types.js';
+import type { IndividualToolCallDisplay } from '../../types.js';
+import { ToolCallStatus } from '../../types.js';
 import { DiffRenderer } from './DiffRenderer.js';
 import { Colors } from '../../colors.js';
 import { MarkdownDisplay } from '../../utils/MarkdownDisplay.js';
 import { GeminiRespondingSpinner } from '../GeminiRespondingSpinner.js';
 import { MaxSizedBox } from '../shared/MaxSizedBox.js';
 import { TodoDisplay } from '../TodoDisplay.js';
-import {
+import { TOOL_STATUS } from '../../constants.js';
+import type {
   TodoResultDisplay,
   TaskResultDisplay,
+  PlanResultDisplay,
+  Config,
 } from '@qwen-code/qwen-code-core';
 import { AgentExecutionDisplay } from '../subagents/index.js';
+import { PlanSummaryDisplay } from '../PlanSummaryDisplay.js';
 
 const STATIC_HEIGHT = 1;
 const RESERVED_LINE_COUNT = 5; // for tool name, status, padding etc.
@@ -32,6 +37,7 @@ export type TextEmphasis = 'high' | 'medium' | 'low';
 type DisplayRendererResult =
   | { type: 'none' }
   | { type: 'todo'; data: TodoResultDisplay }
+  | { type: 'plan'; data: PlanResultDisplay }
   | { type: 'string'; data: string }
   | { type: 'diff'; data: { fileDiff: string; fileName: string } }
   | { type: 'task'; data: TaskResultDisplay };
@@ -57,6 +63,18 @@ const useResultDisplayRenderer = (
       return {
         type: 'todo',
         data: resultDisplay as TodoResultDisplay,
+      };
+    }
+
+    if (
+      typeof resultDisplay === 'object' &&
+      resultDisplay !== null &&
+      'type' in resultDisplay &&
+      resultDisplay.type === 'plan_summary'
+    ) {
+      return {
+        type: 'plan',
+        data: resultDisplay as PlanResultDisplay,
       };
     }
 
@@ -99,6 +117,18 @@ const TodoResultRenderer: React.FC<{ data: TodoResultDisplay }> = ({
   data,
 }) => <TodoDisplay todos={data.todos} />;
 
+const PlanResultRenderer: React.FC<{
+  data: PlanResultDisplay;
+  availableHeight?: number;
+  childWidth: number;
+}> = ({ data, availableHeight, childWidth }) => (
+  <PlanSummaryDisplay
+    data={data}
+    availableHeight={availableHeight}
+    childWidth={childWidth}
+  />
+);
+
 /**
  * Component to render subagent execution results
  */
@@ -106,11 +136,13 @@ const SubagentExecutionRenderer: React.FC<{
   data: TaskResultDisplay;
   availableHeight?: number;
   childWidth: number;
-}> = ({ data, availableHeight, childWidth }) => (
+  config: Config;
+}> = ({ data, availableHeight, childWidth, config }) => (
   <AgentExecutionDisplay
     data={data}
     availableHeight={availableHeight}
     childWidth={childWidth}
+    config={config}
   />
 );
 
@@ -173,6 +205,7 @@ export interface ToolMessageProps extends IndividualToolCallDisplay {
   terminalWidth: number;
   emphasis?: TextEmphasis;
   renderOutputAsMarkdown?: boolean;
+  config: Config;
 }
 
 export const ToolMessage: React.FC<ToolMessageProps> = ({
@@ -184,6 +217,7 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
   terminalWidth,
   emphasis = 'medium',
   renderOutputAsMarkdown = true,
+  config,
 }) => {
   const availableHeight = availableTerminalHeight
     ? Math.max(
@@ -222,11 +256,19 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
             {displayRenderer.type === 'todo' && (
               <TodoResultRenderer data={displayRenderer.data} />
             )}
+            {displayRenderer.type === 'plan' && (
+              <PlanResultRenderer
+                data={displayRenderer.data}
+                availableHeight={availableHeight}
+                childWidth={childWidth}
+              />
+            )}
             {displayRenderer.type === 'task' && (
               <SubagentExecutionRenderer
                 data={displayRenderer.data}
                 availableHeight={availableHeight}
                 childWidth={childWidth}
+                config={config}
               />
             )}
             {displayRenderer.type === 'string' && (
@@ -260,28 +302,32 @@ const ToolStatusIndicator: React.FC<ToolStatusIndicatorProps> = ({
 }) => (
   <Box minWidth={STATUS_INDICATOR_WIDTH}>
     {status === ToolCallStatus.Pending && (
-      <Text color={Colors.AccentGreen}>o</Text>
+      <Text color={Colors.AccentGreen}>{TOOL_STATUS.PENDING}</Text>
     )}
     {status === ToolCallStatus.Executing && (
       <GeminiRespondingSpinner
         spinnerType="toggle"
-        nonRespondingDisplay={'⊷'}
+        nonRespondingDisplay={TOOL_STATUS.EXECUTING}
       />
     )}
     {status === ToolCallStatus.Success && (
-      <Text color={Colors.AccentGreen}>✓</Text>
+      <Text color={Colors.AccentGreen} aria-label={'Success:'}>
+        {TOOL_STATUS.SUCCESS}
+      </Text>
     )}
     {status === ToolCallStatus.Confirming && (
-      <Text color={Colors.AccentYellow}>?</Text>
+      <Text color={Colors.AccentYellow} aria-label={'Confirming:'}>
+        {TOOL_STATUS.CONFIRMING}
+      </Text>
     )}
     {status === ToolCallStatus.Canceled && (
-      <Text color={Colors.AccentYellow} bold>
-        -
+      <Text color={Colors.AccentYellow} aria-label={'Canceled:'} bold>
+        {TOOL_STATUS.CANCELED}
       </Text>
     )}
     {status === ToolCallStatus.Error && (
-      <Text color={Colors.AccentRed} bold>
-        x
+      <Text color={Colors.AccentRed} aria-label={'Error:'} bold>
+        {TOOL_STATUS.ERROR}
       </Text>
     )}
   </Box>

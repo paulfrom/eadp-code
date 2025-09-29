@@ -15,6 +15,14 @@ vi.mock('../ui/commands/aboutCommand.js', async () => {
   };
 });
 
+vi.mock('../ui/commands/approvalModeCommand.js', () => ({
+  approvalModeCommand: {
+    name: 'approval-mode',
+    description: 'Approval mode command',
+    kind: 'built-in',
+  },
+}));
+
 vi.mock('../ui/commands/ideCommand.js', () => ({ ideCommand: vi.fn() }));
 vi.mock('../ui/commands/restoreCommand.js', () => ({
   restoreCommand: vi.fn(),
@@ -22,7 +30,7 @@ vi.mock('../ui/commands/restoreCommand.js', () => ({
 
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { BuiltinCommandLoader } from './BuiltinCommandLoader.js';
-import { Config } from '@qwen-code/qwen-code-core';
+import type { Config } from '@qwen-code/qwen-code-core';
 import { CommandKind } from '../ui/commands/types.js';
 
 import { ideCommand } from '../ui/commands/ideCommand.js';
@@ -53,6 +61,13 @@ vi.mock('../ui/commands/mcpCommand.js', () => ({
   mcpCommand: {
     name: 'mcp',
     description: 'MCP command',
+    kind: 'BUILT_IN',
+  },
+}));
+vi.mock('../ui/commands/modelCommand.js', () => ({
+  modelCommand: {
+    name: 'model',
+    description: 'Model command',
     kind: 'BUILT_IN',
   },
 }));
@@ -121,10 +136,17 @@ describe('BuiltinCommandLoader', () => {
     expect(aboutCmd).toBeDefined();
     expect(aboutCmd?.kind).toBe(CommandKind.BUILT_IN);
 
+    const approvalModeCmd = commands.find((c) => c.name === 'approval-mode');
+    expect(approvalModeCmd).toBeDefined();
+    expect(approvalModeCmd?.kind).toBe(CommandKind.BUILT_IN);
+
     const ideCmd = commands.find((c) => c.name === 'ide');
     expect(ideCmd).toBeDefined();
 
     const mcpCmd = commands.find((c) => c.name === 'mcp');
     expect(mcpCmd).toBeDefined();
+
+    const modelCmd = commands.find((c) => c.name === 'model');
+    expect(modelCmd).toBeDefined();
   });
 });

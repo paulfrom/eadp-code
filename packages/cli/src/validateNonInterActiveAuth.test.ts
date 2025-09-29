@@ -4,11 +4,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
-  validateNonInteractiveAuth,
-  NonInteractiveConfig,
-} from './validateNonInterActiveAuth.js';
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  type MockedFunction,
+} from 'vitest';
+import type { NonInteractiveConfig } from './validateNonInterActiveAuth.js';
+import { validateNonInteractiveAuth } from './validateNonInterActiveAuth.js';
 import { AuthType } from '@qwen-code/qwen-code-core';
 import * as auth from './config/auth.js';
 
@@ -19,9 +25,7 @@ describe('validateNonInterActiveAuth', () => {
   let originalEnvOpenAiApiKey: string | undefined;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
   let processExitSpy: ReturnType<typeof vi.spyOn>;
-  let refreshAuthMock: jest.MockedFunction<
-    (authType: AuthType) => Promise<unknown>
-  >;
+  let refreshAuthMock: MockedFunction<(authType: AuthType) => Promise<unknown>>;
 
   beforeEach(() => {
     originalEnvGeminiApiKey = process.env['GEMINI_API_KEY'];
@@ -120,6 +124,18 @@ describe('validateNonInterActiveAuth', () => {
       nonInteractiveConfig,
     );
     expect(refreshAuthMock).toHaveBeenCalledWith(AuthType.USE_OPENAI);
+  });
+
+  it('uses configured QWEN_OAUTH if provided', async () => {
+    const nonInteractiveConfig: NonInteractiveConfig = {
+      refreshAuth: refreshAuthMock,
+    };
+    await validateNonInteractiveAuth(
+      AuthType.QWEN_OAUTH,
+      undefined,
+      nonInteractiveConfig,
+    );
+    expect(refreshAuthMock).toHaveBeenCalledWith(AuthType.QWEN_OAUTH);
   });
 
   it('uses USE_VERTEX_AI if GOOGLE_GENAI_USE_VERTEXAI is true (with GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION)', async () => {
