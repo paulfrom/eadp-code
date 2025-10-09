@@ -172,6 +172,13 @@ export async function handleAtCommand({
       continue;
     }
 
+    if(originalAtPath.includes("@sei/suid")){
+      onDebugMessage(
+        '@sei/suid detected, skipping processing.',
+      );
+      continue;
+    }
+
     const pathName = originalAtPath.substring(1);
     if (!pathName) {
       // This case should ideally not be hit if parseAllAtCommands ensures content after @

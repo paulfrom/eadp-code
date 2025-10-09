@@ -1,13 +1,7 @@
 {
-<<<<<<< HEAD
   "name": "@eadp-code/eadp-code",
   "version": "0.0.11",
   "description": "eadp Code",
-=======
-  "name": "@qwen-code/qwen-code",
-  "version": "0.0.13",
-  "description": "Qwen Code",
->>>>>>> 9fce177bd8cb3629cbf2dcab8b9d7e8825b02892
   "repository": {
     "type": "git",
     "url": "git+https://github.com/paulfrom/eadp-code.git"

@@ -18,7 +18,7 @@ import React from 'react';
 
 export const initCommand: SlashCommand = {
   name: 'init',
-  description: 'Analyzes the project and creates a tailored QWEN.md file.',
+  description: 'Analyzes the project and creates a tailored EADP.md file.',
   kind: CommandKind.BUILT_IN,
   action: async (
     context: CommandContext,
@@ -92,39 +92,59 @@ export const initCommand: SlashCommand = {
     return {
       type: 'submit_prompt',
       content: `
-You are Qwen Code, an interactive CLI agent. Analyze the current directory and generate a comprehensive ${contextFileName} file to be used as instructional context for future interactions.
+      You are EADP Code, an interactive CLI agent. Analyze the current directory and generate a comprehensive ${contextFileName} file to be used as instructional context for future interactions.
 
 **Analysis Process:**
 
-1.  **Initial Exploration:**
-    *   Start by listing the files and directories to get a high-level overview of the structure.
-    *   Read the README file (e.g., \`README.md\`, \`README.txt\`) if it exists. This is often the best place to start.
+1. **Initial Exploration:**
+   - Begin by listing all files and directories to understand the high-level structure.
+   - Check for a \`README.md\` or \`README.txt\` file and read it if present—it often contains critical project context.
 
-2.  **Iterative Deep Dive (up to 10 files):**
-    *   Based on your initial findings, select a few files that seem most important (e.g., configuration files, main source files, documentation).
-    *   Read them. As you learn more, refine your understanding and decide which files to read next. You don't need to decide all 10 files at once. Let your discoveries guide your exploration.
+2. **Iterative Deep Dive (up to 10 files):**
+   - Based on initial findings, prioritize reading key files that reveal the project’s nature:
+     - For **frontend projects**: examine \`package.json\`, \`src/\`, and any React component files.
+     - For **backend projects**: examine \`build.gradle\`, \`settings.gradle\`, and Java source files under \`src/main/java\`.
+   - Use insights from each file to guide the selection of subsequent files. You do not need to pre-select all 10 files—let your analysis evolve iteratively.
 
-3.  **Identify Project Type:**
-    *   **Code Project:** Look for clues like \`package.json\`, \`requirements.txt\`, \`pom.xml\`, \`go.mod\`, \`Cargo.toml\`, \`build.gradle\`, or a \`src\` directory. If you find them, this is likely a software project.
-    *   **Non-Code Project:** If you don't find code-related files, this might be a directory for documentation, research papers, notes, or something else.
+3. **Project Type Identification:**
+   - **Frontend Project**: Identified by the presence of \`package.json\` and React-related dependencies. **All frontend projects must use the \`@sei/suid\` package**. 
+   Your analysis must focus on how this package is integrated and used.
+   - **Backend Project**: Identified by \`build.gradle\` and Java source structure. **All backend projects belong to the \`com.changhong.sei\` package namespace** and use one or more of the following SEI SDKs:
+     - \`sei-cloud-nacos-starter\`: for microservice registration, discovery, and configuration.
+     - \`sei-basic-api\`: for accessing user, organization, company, role, and permission data.
+     - \`sei-edm-sdk\`: for attachment/file storage operations.
+     - \`sei-notify-sdk\`: for sending notifications (SMS, email, internal messages).
+     - \`sei-serial-sdk\`: for generating unified serial numbers (e.g., order IDs).
+   - **There are no “non-code” projects**. Every directory analyzed is either a frontend or backend code project as defined above.
 
 **${contextFileName} Content Generation:**
 
-**For a Code Project:**
+# Frontend Projects
+- **Technology Stack**: React  
+- **Dependency Analysis**: Analyze project dependencies via \`package.json\`  
+- **Mandatory Package**: All frontend projects must include a reference to \`@sei/suid\`  
+- **Analysis Focus**: Deeply analyze how \`@sei/suid\` is utilized in the project  
+- **Specification Level**: Elevate the usage specifications of \`@sei/suid\` to the highest level  
+- **Example Requirement**: Provide example code demonstrating proper integration and usage of \`@sei/suid\` in React components  
 
-*   **Project Overview:** Write a clear and concise summary of the project's purpose, main technologies, and architecture.
-*   **Building and Running:** Document the key commands for building, running, and testing the project. Infer these from the files you've read (e.g., \`scripts\` in \`package.json\`, \`Makefile\`, etc.). If you can't find explicit commands, provide a placeholder with a TODO.
-*   **Development Conventions:** Describe any coding styles, testing practices, or contribution guidelines you can infer from the codebase.
-
-**For a Non-Code Project:**
-
-*   **Directory Overview:** Describe the purpose and contents of the directory. What is it for? What kind of information does it hold?
-*   **Key Files:** List the most important files and briefly explain what they contain.
-*   **Usage:** Explain how the contents of this directory are intended to be used.
+# Backend Projects
+- **Technology Stack**: Java  
+- **Dependency Analysis**: Analyze project dependencies via \`build.gradle\`  
+- **Module Structure**: Project module classification defined in \`settings.gradle\`  
+- **Mandatory Packages**: All backend projects must include packages under \`com.changhong.sei\`  
+- **Key Components and Usage**:  
+  - \`sei-cloud-nacos-starter\`: Microservice governance suite for service registration and discovery  
+  - \`sei-basic-api\`: Basic application suite providing APIs for user, organization, company, permission, and position management  
+  - \`sei-edm-sdk\`: Attachment storage services for file upload and management  
+  - \`sei-notify-sdk\`: Message sending services for system notifications and alerts  
+  - \`sei-serial-sdk\`: Unified order number services for generating unique order identifiers  
+- **Specification Level**: Elevate the usage specifications of these components to the highest level  
+- **Example Requirement**: Provide complete example code demonstrating proper configuration and invocation of each component in Java projects
 
 **Final Output:**
 
 Write the complete content to the \`${contextFileName}\` file. The output must be well-formatted Markdown.
+You are EADP Code, an interactive CLI agent. Analyze the current directory and generate a comprehensive ${contextFileName} file to be used as instructional context for future interactions.
 `,
     };
   },

@@ -70,11 +70,11 @@ Do NOT use this tool:
   - If not specified, the tool will ask the user where they want to save the memory.
 `;
 
-export const GEMINI_CONFIG_DIR = '.qwen';
-export const DEFAULT_CONTEXT_FILENAME = 'QWEN.md';
-export const MEMORY_SECTION_HEADER = '## Qwen Added Memories';
+export const GEMINI_CONFIG_DIR = '.eadp';
+export const DEFAULT_CONTEXT_FILENAME = 'EADP.md';
+export const MEMORY_SECTION_HEADER = '## EADP Added Memories';
 
-// This variable will hold the currently configured filename for QWEN.md context files.
+// This variable will hold the currently configured filename for EADP.md context files.
 // It defaults to DEFAULT_CONTEXT_FILENAME but can be overridden by setGeminiMdFilename.
 let currentGeminiMdFilename: string | string[] = DEFAULT_CONTEXT_FILENAME;
 
