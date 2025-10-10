@@ -21,4 +21,5 @@ export const ToolNames = {
   MEMORY: 'save_memory',
   TASK: 'task',
   EXIT_PLAN_MODE: 'exit_plan_mode',
+  SWAGGER_API: 'swagger_api',
 } as const;
