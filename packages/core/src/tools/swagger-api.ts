@@ -205,22 +205,15 @@ class SwaggerApiToolInvocation extends BaseToolInvocation<
 
     // Construct the actual request URL by replacing path parameters with placeholders and adding query parameters
     let constructedPath = apiPath;
-    const pathParams: Array<{name: string, description: string}> = [];
-    const queryParams: Array<{name: string, description: string, required: boolean}> = [];
+    const queryParams: Array<{name: string, description: string}> = [];
     
     // Separate path and query parameters
     if (typedOperation.parameters && typedOperation.parameters.length > 0) {
       for (const param of typedOperation.parameters) {
-        if (param.in === 'path') {
-          pathParams.push({
-            name: param.name || 'N/A',
-            description: param.description?.replace(/\n/g, ' ') || 'No description'
-          });
-        } else if (param.in === 'query') {
+       if (param.in === 'query') {
           queryParams.push({
             name: param.name || 'N/A',
-            description: param.description?.replace(/\n/g, ' ') || 'No description',
-            required: !!param.required
+            description: param.description?.replace(/\n/g, ' ') || 'No description'
           });
         }
       }
@@ -229,12 +222,10 @@ class SwaggerApiToolInvocation extends BaseToolInvocation<
     // Build the query string part
     let queryString = '';
     if (queryParams.length > 0) {
-      const requiredQueryParams = queryParams.filter(p => p.required).map(p => `${p.name}=<value>`);
-      const optionalQueryParams = queryParams.filter(p => !p.required).map(p => `[${p.name}=<value>]`);
+      const query = queryParams.map(p => `${p.name}=${p.description}`);
       
-      const allQueryParts = [...requiredQueryParams, ...optionalQueryParams];
-      if (allQueryParts.length > 0) {
-        queryString = '?' + allQueryParts.join('&');
+      if (query.length > 0) {
+        queryString = '?' + query.join('&');
       }
     }
     
@@ -392,13 +383,12 @@ class SwaggerApiToolInvocation extends BaseToolInvocation<
     switch (schema.type) {
       case 'string':
         return schema.format === 'date-time' ? new Date().toISOString() :
-          schema.format === 'email' ? 'user@example.com' :
-            schema.enum ? schema.enum[0] : 'string';
+            schema.enum ? `${schema.description}(${schema.enum[0]})` : `${schema.description?schema.description:'string'}`;
       case 'number':
       case 'integer':
-        return schema.enum ? schema.enum[0] : 0;
+        return schema.enum ? `${schema.description}(${schema.enum[0]})` :`${schema.description?schema.description:'0'}`;
       case 'boolean':
-        return true;
+        return `${schema.description?schema.description:'true'}`;
       case 'array':
         if (schema.items) {
           // Handle $ref in array items
@@ -412,13 +402,13 @@ class SwaggerApiToolInvocation extends BaseToolInvocation<
           for (const [key, value] of Object.entries(schema.properties)) {
             // Recursively resolve each property which might contain $ref
             const resolvedProperty = this.resolveRef(value, componentsSchemas);
-            obj[key] = this.generateExampleFromSchema(resolvedProperty, componentsSchemas) + (schema.properties[key].description ? ` // ${schema.properties[key].description}` : '');
+            obj[key] = this.generateExampleFromSchema(resolvedProperty, componentsSchemas);
           }
           return obj;
         }
         return {};
       default:
-        return {};
+        return schema.description;
     }
   }
 
@@ -446,7 +436,6 @@ class SwaggerApiToolInvocation extends BaseToolInvocation<
       const pathInfo = this.findApiPathInfoByOperationId(swaggerData, operationId);
 
       if (!pathInfo) {
-        result += `Could not find detailed info for operation ID '${operationId}'.\n\n`;
         continue;
       }
 
