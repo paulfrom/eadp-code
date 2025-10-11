@@ -1058,7 +1058,7 @@ export class Config {
     registerCoreTool(TodoWriteTool, this);
     registerCoreTool(ExitPlanModeTool, this);
     registerCoreTool(WebFetchTool, this);
-    registerCoreTool(SwaggerApiTool, this);
+    registerCoreTool(SwaggerApiTool);
     // Conditionally register web search tool only if Tavily API key is set
     if (this.getTavilyApiKey()) {
       registerCoreTool(WebSearchTool, this);

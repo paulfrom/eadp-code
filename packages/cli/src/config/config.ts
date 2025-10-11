@@ -121,7 +121,7 @@ export interface CliArgs {
 export async function parseArguments(settings: Settings): Promise<CliArgs> {
   const yargsInstance = yargs(hideBin(process.argv))
     // Set locale to English for consistent output, especially in tests
-    .locale('en')
+    .locale('zh')
     .scriptName('qwen')
     .usage(
       'Usage: qwen [options] [command]\n\nQwen Code - Launch an interactive CLI, use -p/--prompt for non-interactive mode',
