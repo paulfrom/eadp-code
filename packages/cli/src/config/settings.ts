@@ -275,14 +275,14 @@ function mergeSettings(
   const { security, ...restOfWorkspace } = safeWorkspace;
   const safeWorkspaceWithoutFolderTrust = security
     ? {
-        ...restOfWorkspace,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        security: (({ folderTrust, ...rest }) => rest)(security),
-      }
+      ...restOfWorkspace,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      security: (({ folderTrust, ...rest }) => rest)(security),
+    }
     : {
-        ...restOfWorkspace,
-        security: {},
-      };
+      ...restOfWorkspace,
+      security: {},
+    };
 
   // Settings are merged with the following precedence (last one wins for
   // single values):
@@ -738,14 +738,21 @@ export function loadSettings(workspaceDir: string): LoadedSettings {
           }
         }
         return settingsObject as Settings;
+      } else {
+        // If the settings file doesn't exist, create a default one
+        return createDefaultSettingsFile(filePath, scope);
       }
     } catch (error: unknown) {
       settingsErrors.push({
         message: getErrorMessage(error),
         path: filePath,
       });
+      // If there was an error loading the file, try to create a default one
+      if (!fs.existsSync(filePath)) {
+        return createDefaultSettingsFile(filePath, scope);
+      }
+      return {};
     }
-    return {};
   };
 
   systemSettings = loadAndMigrate(systemSettingsPath, SettingScope.System);
@@ -823,6 +830,92 @@ export function loadSettings(workspaceDir: string): LoadedSettings {
   return loadedSettings;
 }
 
+/**
+ * Creates a default settings object with all default values from the schema
+ */
+export function createDefaultSettings(): Settings {
+  return {
+    general: {
+      vimMode: false,
+      disableAutoUpdate: false,
+      disableUpdateNag: false,
+      checkpointing: {
+        enabled: false,
+      },
+      enablePromptCompletion: false,
+      debugKeystrokeLogging: false,
+    },
+    ui: {
+      hideWindowTitle: false,
+      hideTips: false,
+      hideBanner: false,
+      hideFooter: false,
+      showMemoryUsage: false,
+      showLineNumbers: false,
+      accessibility: {
+        disableLoadingPhrases: false,
+      },
+    },
+    ide: {
+      enabled: false,
+      hasSeenNudge: false,
+    },
+    privacy: {
+      usageStatisticsEnabled: true,
+    },
+    model: {
+      maxSessionTurns: -1,
+      skipNextSpeakerCheck: false,
+    },
+    context: {
+      discoveryMaxDirs: 200,
+      includeDirectories: [],
+      loadMemoryFromIncludeDirectories: false,
+      fileFiltering: {
+        respectGitIgnore: true,
+        respectGeminiIgnore: true,
+        enableRecursiveFileSearch: true,
+        disableFuzzySearch: false,
+      },
+    },
+    tools: {
+      usePty: false,
+      useRipgrep: false,
+    },
+    mcp: {},
+    security: {
+      folderTrust: {
+        featureEnabled: false,
+        enabled: false,
+      },
+    },
+    advanced: {
+      autoConfigureMemory: false,
+      excludedEnvVars: DEFAULT_EXCLUDED_ENV_VARS,
+    },
+    experimental: {
+      extensionManagement: false,
+      visionModelPreview: true,
+    },
+    extensions: {
+      disabled: [],
+      workspacesWithMigrationNudge: [],
+    },
+    enableOpenAILogging: false,
+    sessionTokenLimit: undefined,
+    systemPromptMappings: undefined,
+    tavilyApiKey: undefined,
+    skipNextSpeakerCheck: false,
+    skipLoopDetection: false,
+    approvalMode: 'default',
+    enableWelcomeBack: true,
+    mcpServers: {},
+    swaggerUrl: '',
+    swaggerPassword: '',
+    swaggerUserName: '',
+  };
+}
+
 export function saveSettings(settingsFile: SettingsFile): void {
   try {
     // Ensure the directory exists
@@ -846,4 +939,28 @@ export function saveSettings(settingsFile: SettingsFile): void {
   } catch (error) {
     console.error('Error saving user settings file:', error);
   }
+}
+
+/**
+ * Creates a default settings file at the specified path if it doesn't exist
+ */
+function createDefaultSettingsFile(filePath: string, scope: SettingScope): Settings {
+  if (scope !== SettingScope.Workspace) {
+    return {};
+  }
+  const dirPath = path.dirname(filePath);
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+
+  const defaultSettings = createDefaultSettings();
+  const settingsFile: SettingsFile = {
+    settings: defaultSettings,
+    path: filePath,
+  };
+
+  saveSettings(settingsFile);
+  console.log(`Created default ${scope.toLowerCase()} settings file at: ${filePath}`);
+
+  return defaultSettings;
 }

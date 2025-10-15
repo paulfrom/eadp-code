@@ -149,7 +149,7 @@ export class MCPServerConfig {
     // OAuth configuration
     readonly oauth?: MCPOAuthConfig,
     readonly authProviderType?: AuthProviderType,
-  ) {}
+  ) { }
 }
 
 export enum AuthProviderType {
@@ -246,6 +246,10 @@ export interface ConfigParameters {
   enablePromptCompletion?: boolean;
   skipLoopDetection?: boolean;
   vlmSwitchMode?: string;
+  // swagger config
+  swaggerUrl?: string;
+  swaggerUserName?: string;
+  swaggerPassword?: string;
 }
 
 export class Config {
@@ -342,6 +346,10 @@ export class Config {
   readonly storage: Storage;
   private readonly fileExclusions: FileExclusions;
   private logger: Logger | null = null;
+  // swagger config
+  private swaggerUrl: string | null = null;
+  private swaggerUserName: string | null = null;
+  private swaggerPassword: string | null = null;
 
   constructor(params: ConfigParameters) {
     this.sessionId = params.sessionId;
@@ -451,6 +459,11 @@ export class Config {
     }
 
     logCliConfiguration(this, new StartSessionEvent(this));
+
+    // swagger config
+    this.swaggerUrl = params.swaggerUrl ?? null;
+    this.swaggerUserName = params.swaggerUserName ?? null;
+    this.swaggerPassword = params.swaggerPassword ?? null;
   }
 
   /**
@@ -772,6 +785,18 @@ export class Config {
     return this.fileFiltering.respectGeminiIgnore;
   }
 
+  getSwaggerParameters(): {
+    url: string | null;
+    userName: string | null;
+    password: string | null;
+  } {
+    return {
+      url: this.swaggerUrl,
+      userName: this.swaggerUserName,
+      password: this.swaggerPassword,
+    };
+  }
+
   getFileFilteringOptions(): FileFilteringOptions {
     return {
       respectGitIgnore: this.fileFiltering.respectGitIgnore,
@@ -930,10 +955,10 @@ export class Config {
 
   getSystemPromptMappings():
     | Array<{
-        baseUrls?: string[];
-        modelNames?: string[];
-        template?: string;
-      }>
+      baseUrls?: string[];
+      modelNames?: string[];
+      template?: string;
+    }>
     | undefined {
     return this.systemPromptMappings;
   }

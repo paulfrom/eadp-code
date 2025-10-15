@@ -18,6 +18,8 @@ import type {
   ToolInfoConfirmationDetails,
 } from './tools.js';
 import { ToolConfirmationOutcome } from './tools.js';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 /**
  * Parameters for the Swagger API tool
@@ -55,9 +57,9 @@ class SwaggerApiToolInvocation extends BaseToolInvocation<
     return `Accessing Swagger API at ${this.params.url} to extract API information`;
   }
 
-  override async shouldConfirmExecute(): Promise<
-    ToolCallConfirmationDetails | false
-  > {
+  override async shouldConfirmExecute(
+    _abortSignal: AbortSignal,
+  ): Promise<ToolCallConfirmationDetails | false> {
     if (this.config.getApprovalMode() === ApprovalMode.AUTO_EDIT) {
       return false;
     }
@@ -140,8 +142,8 @@ class SwaggerApiToolInvocation extends BaseToolInvocation<
         // Extract and format the API information for the specific endpoint
         result = this.formatApiInfo(pathInfo, pathInfo.path);
       } else {
-        // Parse all interfaces in the swagger data
-        result = this.formatAllApiInfo(swaggerData);
+        // Parse all interfaces in the swagger data and save by tag
+        result = await this.formatAndSaveAllApiInfoByTag(swaggerData);
       }
 
       return {
@@ -231,10 +233,9 @@ class SwaggerApiToolInvocation extends BaseToolInvocation<
     
     const fullUrl = constructedPath + queryString;
     
-    let result = `# API Endpoint Information\n\n`;
-    result += `## Method Description\n${typedOperation.summary || typedOperation.description || 'No description provided'}\n\n`;
-    result += `## Request Type\n\`${method}\`\n\n`;
-    result += `## Request URL\n\`${fullUrl}\`\n\n`;
+    let result = `# API desc: ${typedOperation.summary || typedOperation.description || 'No description provided'}\n`;
+    result += `## Request Type \`${method}\`\n`;
+    result += `## Request URL \`${fullUrl}\`\n`;
 
 
     // Format request parameters
@@ -280,12 +281,10 @@ class SwaggerApiToolInvocation extends BaseToolInvocation<
     // Format response examples
     result += `\n## Response Examples\n`;
     if (typedOperation.responses) {
-      for (const [statusCode, response] of Object.entries(typedOperation.responses)) {
+      for (const [response] of Object.entries(typedOperation.responses)) {
         const typedResponse = response as { description?: string; content?: any; schema?: any };
-        const description = typedResponse.description || 'No description';
         const schema = typedResponse.content ? this.getSchemaFromContent(typedResponse.content) : typedResponse.schema;
 
-        result += `### Status ${statusCode}: ${description}\n`;
         if (schema) {
           try {
             // Resolve any $ref in the response schema
@@ -413,40 +412,128 @@ class SwaggerApiToolInvocation extends BaseToolInvocation<
   }
 
   /**
-   * Format information for all API endpoints
+   * Format information for all API endpoints and save them by tag to files
    */
-  private formatAllApiInfo(swaggerData: any): string {
+  private async formatAndSaveAllApiInfoByTag(swaggerData: any): Promise<string> {
     const paths = swaggerData.paths || {};
-    let result = `# API Documentation\n\n`;
+    const allTags = swaggerData.tags || [];
+    const tagGroups: Record<string, { operations: any[], description: string }> = {};
 
-    if (swaggerData.info) {
-      result += `## API Info\n`;
-      result += `- **Title:** ${swaggerData.info.title || 'N/A'}\n`;
-      result += `- **Version:** ${swaggerData.info.version || 'N/A'}\n`;
-      result += `- **Description:** ${swaggerData.info.description || 'N/A'}\n\n`;
+    // Create mapping from allTags for easier lookup
+    const tagMap: Record<string, { name: string, description: string }> = {};
+    for (const tag of allTags) {
+      if (tag.name) {
+        tagMap[tag.name] = {
+          name: tag.name,
+          description: tag.description || tag.name
+        };
+      }
     }
 
-    result += `## All Endpoints\n\n`;
+    // Group all operations by matching the first tag in the path to the allTags
+    for (const [path, methods] of Object.entries(paths)) {
+      for (const [method, operation] of Object.entries(methods as Record<string, any>)) {
+        const typedOperation = operation as {
+          tags?: string[];
+          operationId?: string;
+        };
 
-    for (const [path] of Object.entries(paths)) {
-      const pathParts = path.split('/').filter(part => part !== '');
-      const operationId = pathParts[pathParts.length - 1]; // Last part is usually the operation ID
+        // Use the first tag if available, or use 'default' as fallback
+        const operationTag = typedOperation.tags && typedOperation.tags.length > 0
+          ? typedOperation.tags[0]
+          : null;
 
-      // Find the corresponding operation in the Swagger JSON using the operation ID
-      const pathInfo = this.findApiPathInfoByOperationId(swaggerData, operationId);
+        if (operationTag && tagMap[operationTag]) {
+          // Match found with allTags
+          const tagInfo = tagMap[operationTag];
+          const tagKey = `${tagInfo.description}-${this.sanitizeFileName(tagInfo.name)}`;
+          
+          if (!tagGroups[tagKey]) {
+            tagGroups[tagKey] = {
+              operations: [],
+              description: tagInfo.description
+            };
+          }
+          
+          tagGroups[tagKey].operations.push({ path, method, operation, swaggerData });
+        } else if (operationTag) {
+          // If tag not found in allTags, use the tag name directly
+          const tagKey = `default-${this.sanitizeFileName(operationTag)}`;
+          
+          if (!tagGroups[tagKey]) {
+            tagGroups[tagKey] = {
+              operations: [],
+              description: operationTag
+            };
+          }
+          
+          tagGroups[tagKey].operations.push({ path, method, operation, swaggerData });
+        } else {
+          // No tag for this operation, put it in a default group
+          const tagKey = 'default-default';
+          
+          if (!tagGroups[tagKey]) {
+            tagGroups[tagKey] = {
+              operations: [],
+              description: 'Default'
+            };
+          }
+          
+          tagGroups[tagKey].operations.push({ path, method, operation, swaggerData });
+        }
+      }
+    }
 
-      if (!pathInfo) {
-        continue;
+    const apiDir = path.join(this.config.storage.getGeminiDir(), 'api');
+    fs.mkdirSync(apiDir, { recursive: true });
+
+    // Save each tag group to a separate file
+    const results: string[] = [];
+    const totalGroups = Object.keys(tagGroups).length;
+    let currentGroup = 0;
+    
+    console.log(`\n📝 Starting to process ${totalGroups} tag files from Swagger API...\n`);
+    
+    for (const [tagKey, group] of Object.entries(tagGroups)) {
+      currentGroup++;
+      
+      // Provide feedback about which file is being started
+      console.log(`⏳ Processing (${currentGroup}/${totalGroups}): ${tagKey}.md (${group.operations.length} endpoints)...`);
+
+      let tagContent = `# ${group.description} API Documentation\n\n`;
+
+      // Process each operation in the tag group
+      for (const [index, operationInfo] of group.operations.entries()) {
+        tagContent += this.formatApiInfo(operationInfo, operationInfo.path);
+        tagContent += `\n`;
+        
+        // Provide periodic progress updates for large groups
+        if (group.operations.length > 10 && (index + 1) % Math.floor(group.operations.length / 4) === 0) {
+          console.log(`   Processed ${index + 1}/${group.operations.length} endpoints for ${tagKey}...`);
+        }
       }
 
-      // Extract and format the API information for the specific endpoint
-      result += this.formatApiInfo(pathInfo, pathInfo.path);
-
-      result += `\n`;
+      // Save the tag content to a file with description-name.md format
+      const tagFilePath = path.join(apiDir, `${tagKey}.md`);
+      fs.writeFileSync(tagFilePath, tagContent, 'utf-8');
+      const message = `Saved ${group.operations.length} endpoints for tag "${tagKey}" to ${tagFilePath}`;
+      results.push(message);
+      // Provide feedback after saving each file
+      console.log(`✅ Completed (${currentGroup}/${totalGroups}): ${tagKey}.md (${group.operations.length} endpoints)\n`);
     }
+    
+    console.log(`\n🎉 Finished processing all ${totalGroups} tag files!`);
 
-    return result;
+    return `Successfully saved API documentation by tags:\n${results.join('\n')}`;
   }
+
+  /**
+   * Sanitize file name to remove invalid characters
+   */
+  private sanitizeFileName(name: string): string {
+    return name.replace(/[^a-zA-Z0-9_-]/g, '_');
+  }
+
 }
 
 /**
@@ -482,6 +569,8 @@ export class SwaggerApiTool extends BaseDeclarativeTool<
         },
         required: ['url'],
       },
+      true, // isOutputMarkdown
+      true  // canUpdateOutput
     );
   }
 

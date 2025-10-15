@@ -667,6 +667,9 @@ export async function loadCliConfig(
     enablePromptCompletion: settings.general?.enablePromptCompletion ?? false,
     skipLoopDetection: settings.skipLoopDetection ?? false,
     vlmSwitchMode,
+    swaggerUrl: settings.swaggerUrl || '',
+    swaggerUserName: settings.swaggerUserName || '',
+    swaggerPassword: settings.swaggerPassword || '',
   });
 }
 
