@@ -133,36 +133,32 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
         apiCache.set(apiDir, allServices);
       }
 
-      // Find the requested service with improved matching
+      // Find the requested service with enhanced matching that identifies multiple possible matches
+      // and returns the one with the highest match score
       const requestedServiceName = this.params.service_name.toLowerCase();
+      
+      // Generate multiple possible service name interpretations for flexible matching
+      const possibleServiceNames = this.generatePossibleServiceNames(requestedServiceName);
+      
+      // Collect all possible matches with their scores across all possible interpretations
+      const allPossibleMatches = [];
+      
+      for (const possibleName of possibleServiceNames) {
+        const matchesForThisName = allServices.map(service => {
+          const score = this.calculateServiceMatchScore(possibleName, service);
+          return { service, score, originalName: possibleName };
+        }).filter(item => item.score > 0);
+        
+        allPossibleMatches.push(...matchesForThisName);
+      }
+      
+      // Sort all matches by score in descending order
+      const sortedMatches = allPossibleMatches.sort((a, b) => b.score - a.score);
+      
+      // If we have matches, return the one with the highest score
       let serviceInfo = null;
-      
-      // First try exact match on normalized service name
-      serviceInfo = allServices.find(s => s.service_name === requestedServiceName);
-      
-      // If not found, try matching against display names (original Chinese names)
-      if (!serviceInfo) {
-        serviceInfo = allServices.find(s => 
-          s.service_display_name.toLowerCase().includes(requestedServiceName) ||
-          this.normalizeServiceName(s.service_display_name).includes(requestedServiceName)
-        );
-      }
-      
-      // If still not found, try more flexible matching including partial Chinese names
-      if (!serviceInfo) {
-        serviceInfo = allServices.find(s => {
-          const displayName = s.service_display_name.toLowerCase();
-          // Check if the request is a partial match of the display name
-          return displayName.includes(requestedServiceName) || 
-                 requestedServiceName.includes(displayName) ||
-                 this.isSimilarServiceName(requestedServiceName, displayName);
-        });
-      }
-      
-      // If still not found, try keyword-based matching 
-      if (!serviceInfo) {
-        // Look for keywords that might match service types
-        serviceInfo = this.findServiceByKeyword(requestedServiceName, allServices);
+      if (sortedMatches.length > 0) {
+        serviceInfo = sortedMatches[0].service;
       }
       
       if (!serviceInfo) {
@@ -248,103 +244,19 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
     const namePart = filename.replace('.md', '').split('-')[0];
     const fullFilename = filename.replace('.md', '');
     
-    // If it contains Chinese characters, try to extract a relevant English-like service name
-    if (/[^\x00-\x7F]/.test(namePart)) {
-      // Match known patterns in Chinese service names
-      if (namePart.includes('分组') || namePart.toLowerCase().includes('group')) {
-        return 'group';
-      } else if (namePart.includes('用户') || namePart.toLowerCase().includes('user')) {
-        return 'user';
-      } else if (namePart.includes('订单') || namePart.toLowerCase().includes('order')) {
-        return 'order';
-      } else if (namePart.includes('产品') || namePart.toLowerCase().includes('product')) {
-        return 'product';
-      } else if (namePart.includes('员工') || namePart.toLowerCase().includes('employee')) {
-        return 'employee';
-      } else if (namePart.includes('组织') || namePart.toLowerCase().includes('organization')) {
-        return 'organization';
-      } else if (namePart.includes('部门') || namePart.toLowerCase().includes('department')) {
-        return 'department';
-      } else if (namePart.includes('权限') || namePart.toLowerCase().includes('permission')) {
-        return 'permission';
-      } else if (namePart.includes('角色') || namePart.toLowerCase().includes('role')) {
-        return 'role';
-      } else if (namePart.includes('菜单') || namePart.toLowerCase().includes('menu')) {
-        return 'menu';
-      } else if (namePart.includes('资源') || namePart.toLowerCase().includes('resource')) {
-        return 'resource';
-      } else if (namePart.includes('文件') || namePart.toLowerCase().includes('file')) {
-        return 'file';
-      } else if (namePart.includes('日志') || namePart.toLowerCase().includes('log')) {
-        return 'log';
-      } else if (namePart.includes('系统') || namePart.toLowerCase().includes('system')) {
-        return 'system';
-      } else if (namePart.includes('配置') || namePart.toLowerCase().includes('config')) {
-        return 'config';
-      } else if (namePart.includes('设置') || namePart.toLowerCase().includes('setting')) {
-        return 'setting';
-      } else if (namePart.includes('字典') || namePart.toLowerCase().includes('dict')) {
-        return 'dict';
-      } else if (namePart.includes('分类') || namePart.toLowerCase().includes('category')) {
-        return 'category';
-      } else if (namePart.includes('标签') || namePart.toLowerCase().includes('tag')) {
-        return 'tag';
-      } else if (namePart.includes('支付') || namePart.toLowerCase().includes('payment')) {
-        return 'payment';
-      } else if (namePart.includes('购物') || namePart.toLowerCase().includes('cart')) {
-        return 'cart';
-      } else if (namePart.includes('收藏') || namePart.toLowerCase().includes('favorite')) {
-        return 'favorite';
-      } else {
-        // Fallback: try to get the service name from the second part of the filename (e.g., HrGroupApi)
-        const secondPart = fullFilename.split('-')[1] || fullFilename;
-        // Extract the service name by looking for common patterns like HrGroupApi -> group
-        const serviceMatch = secondPart.match(/([A-Z][a-z]+)Api/i);
-        if (serviceMatch) {
-          return serviceMatch[1].toLowerCase();
-        }
-        // If no common pattern found, try to infer from the Chinese name
-        return this.inferServiceFromChineseName(namePart);
-      }
-    } else {
-      // If it's already in English, return the lowercase version
-      const secondPart = fullFilename.split('-')[1] || fullFilename;
-      // Extract the service name by looking for common patterns like HrGroupApi -> group
-      const serviceMatch = secondPart.match(/([A-Z][a-z]+)Api/i);
-      if (serviceMatch) {
-        return serviceMatch[1].toLowerCase();
-      }
-      return namePart.toLowerCase();
+    // Try to get the service name from the second part of the filename (e.g., HrGroupApi)
+    const secondPart = fullFilename.split('-')[1] || fullFilename;
+    // Extract the service name by looking for common patterns like HrGroupApi -> group
+    const serviceMatch = secondPart.match(/([A-Z][a-z]+)Api/i);
+    if (serviceMatch) {
+      return serviceMatch[1].toLowerCase();
     }
-  }
-
-  /**
-   * Infer service name from Chinese name using common patterns
-   */
-  private inferServiceFromChineseName(chineseName: string): string {
-    // Extract common service names from Chinese text
-    if (chineseName.includes('分组') || chineseName.includes('Group')) {
-      return 'group';
-    } else if (chineseName.includes('用户') || chineseName.includes('User')) {
-      return 'user';
-    } else if (chineseName.includes('订单') || chineseName.includes('Order')) {
-      return 'order';
-    } else if (chineseName.includes('产品') || chineseName.includes('Product')) {
-      return 'product';
-    } else if (chineseName.includes('员工') || chineseName.includes('Employee')) {
-      return 'employee';
-    } else if (chineseName.includes('组织') || chineseName.includes('Organization')) {
-      return 'organization';
-    } else if (chineseName.includes('部门') || chineseName.includes('Department')) {
-      return 'department';
-    } else if (chineseName.includes('权限') || chineseName.includes('Permission')) {
-      return 'permission';
-    } else if (chineseName.includes('角色') || chineseName.includes('Role')) {
-      return 'role';
-    } else {
-      // For general cases, just normalize the Chinese name
-      return chineseName.replace(/[^\w\s]/gi, '').substring(0, 10).toLowerCase();
-    }
+    
+    // Fallback to using the original name part if no API pattern is found
+    // but normalize by removing special characters and taking first part if it contains multiple words
+    const normalized = namePart.replace(/[^\w\s]/gi, ' ').trim();
+    const firstWord = normalized.split(/\s+/)[0];
+    return firstWord.toLowerCase();
   }
 
   /**
@@ -359,23 +271,6 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
    * Normalize service name from display name (for matching purposes)
    */
   private normalizeServiceName(displayName: string): string {
-    if (/[^\x00-\x7F]/.test(displayName)) {
-      if (displayName.includes('分组') || displayName.includes('group')) {
-        return 'group';
-      } else if (displayName.includes('用户') || displayName.includes('user')) {
-        return 'user';
-      } else if (displayName.includes('订单') || displayName.includes('order')) {
-        return 'order';
-      } else if (displayName.includes('产品') || displayName.includes('product')) {
-        return 'product';
-      } else if (displayName.includes('员工') || displayName.includes('employee')) {
-        return 'employee';
-      } else if (displayName.includes('组织') || displayName.includes('organization')) {
-        return 'organization';
-      } else if (displayName.includes('部门') || displayName.includes('department')) {
-        return 'department';
-      }
-    }
     return displayName.toLowerCase();
   }
 
@@ -640,20 +535,6 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
   }
 
   /**
-   * Find service by keyword matching
-   */
-  private findServiceByKeyword(keyword: string, allServices: ApiServiceInfo[]): ApiServiceInfo | null {
-    // Look for services that might match based on keywords
-    for (const service of allServices) {
-      // Check if the keyword matches common service patterns
-      if (this.matchesServiceKeyword(keyword, service.service_name, service.service_display_name)) {
-        return service;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Check if a keyword matches a service
    */
   private matchesServiceKeyword(keyword: string, serviceName: string, serviceDisplayName: string): boolean {
@@ -682,6 +563,252 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
     if (lowerKeyword.includes('组织') && (lowerServiceName.includes('organization') || lowerDisplayName.includes('组织'))) return true;
     
     return false;
+  }
+
+  /**
+   * Calculate match score for a service based on the requested service name
+   */
+  private calculateServiceMatchScore(requested: string, service: ApiServiceInfo): number {
+    let score = 0;
+    
+    const serviceDisplayName = service.service_display_name.toLowerCase();
+    const serviceName = service.service_name.toLowerCase();
+    const requestedLower = requested.toLowerCase();
+    
+    // Exact match - highest score
+    if (serviceName === requestedLower || serviceDisplayName === requestedLower) {
+      return 100;
+    }
+    
+    // Service name similarity - high score
+    if (serviceName.includes(requestedLower) || requestedLower.includes(serviceName)) {
+      score += 25;
+    }
+    
+    // Display name similarity - high score
+    if (serviceDisplayName.includes(requestedLower) || requestedLower.includes(serviceDisplayName)) {
+      score += 20;
+    }
+    
+    // Partial matching with normalization - medium score
+    if (this.normalizeServiceName(service.service_display_name).includes(requestedLower) ||
+        requestedLower.includes(this.normalizeServiceName(service.service_display_name))) {
+      score += 15;
+    }
+    
+    // Semantic similarity checks - medium to low score
+    if (this.isSimilarServiceName(requestedLower, serviceDisplayName)) {
+      score += 12;
+    }
+    
+    // Additional semantic checks based on common patterns
+    if (this.matchesServiceKeyword(requestedLower, serviceName, serviceDisplayName)) {
+      score += 10;
+    }
+    
+    // Check if service display name contains parts of requested name or vice versa
+    const requestedWords = requestedLower.split(/[\s\-_]+/);
+    const displayNameWords = serviceDisplayName.split(/[\s\-_]+/);
+    
+    // Add points for each matching word
+    for (const reqWord of requestedWords) {
+      if (reqWord.length > 1) { // Only consider meaningful words
+        for (const dispWord of displayNameWords) {
+          if (dispWord.includes(reqWord) || reqWord.includes(dispWord)) {
+            score += 3;
+          }
+        }
+      }
+    }
+    
+    
+    // Enhanced matching for common service patterns (e.g., "user api" matching "user")
+    if (this.hasCommonServicePatternMatch(requestedLower, serviceDisplayName)) {
+      score += 7;
+    }
+    
+    // Check for common abbreviations
+    if (this.hasAbbreviationMatch(requestedLower, serviceName)) {
+      score += 5;
+    }
+    
+    // Deduct points for services that are too different in length (avoid very short matches in long names)
+    const lengthDiff = Math.abs(requestedLower.length - serviceDisplayName.length);
+    if (lengthDiff > 20) {
+      score = Math.max(0, score - Math.floor(lengthDiff / 5));
+    }
+    
+    return score;
+  }
+
+  /**
+   * Check for common service pattern matches (e.g., "user api" matching "user")
+   */
+  private hasCommonServicePatternMatch(requested: string, displayName: string): boolean {
+    // Remove common suffixes like "api", "service", "management" etc. from both
+    const cleanRequested = requested
+      .replace(/\b(api|service|svc|management|mgr|system|app|web|interface|module|endpoint|rest|controller)\b/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+      
+    const cleanDisplayName = displayName
+      .replace(/\b(api|service|svc|management|mgr|system|app|web|interface|module|endpoint|rest|controller)\b/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    // If cleaned versions match, it's a pattern match
+    if (cleanRequested && cleanDisplayName && 
+        (cleanRequested.includes(cleanDisplayName) || cleanDisplayName.includes(cleanRequested))) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Check for abbreviation matches (e.g., "usr" matching "user")
+   */
+  private hasAbbreviationMatch(requested: string, serviceName: string): boolean {
+    // Common abbreviations mapping
+    const abbreviations: [string, string[]][] = [
+      ['usr', ['user']],
+      ['emp', ['employee']],
+      ['org', ['organization']],
+      ['dept', ['department']],
+      ['prod', ['product']],
+      ['ord', ['order']],
+      ['auth', ['auth', 'authorization', 'permission']],
+      ['grp', ['group']],
+      ['cfg', ['config', 'configuration']],
+      ['acct', ['account']],
+      ['cust', ['customer']],
+      ['inv', ['inventory', 'invoice']],
+      ['pay', ['payment', 'pay']],
+      ['msg', ['message']],
+      ['not', ['notification']],
+      ['cal', ['calendar']],
+      ['evt', ['event']],
+      ['tag', ['tag']],
+      ['cat', ['category']]
+    ];
+
+    // Check if requested is an abbreviation of the service name
+    for (const [abbrev, fullForms] of abbreviations) {
+      if (requested === abbrev && fullForms.some(full => serviceName.includes(full))) {
+        return true;
+      }
+      
+      // Check if service name is an abbreviation of requested
+      if (serviceName === abbrev && fullForms.some(full => requested.includes(full))) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  /**
+   * Generate multiple possible service name interpretations for flexible matching
+   */
+  private generatePossibleServiceNames(requested: string): string[] {
+    const possibleNames = [requested]; // Start with the original requested name
+    
+    // Add variations by removing common service-related suffixes
+    const suffixesToRemove = [
+      'service', 'svc', 'api', 'management', 'mgr', 'controller', 
+      '服务', '接口', '管理', '控制器', 'api接口'
+    ];
+    
+    for (const suffix of suffixesToRemove) {
+      if (requested.endsWith(suffix)) {
+        const variation = requested.substring(0, requested.length - suffix.length).trim();
+        if (variation && !possibleNames.includes(variation)) {
+          possibleNames.push(variation);
+        }
+      }
+    }
+    
+    // Add variations by removing common service-related prefixes
+    const prefixesToRemove = [
+      'crm', 'com_', 'api_', 'service_', 'svc_'
+    ];
+    
+    for (const prefix of prefixesToRemove) {
+      if (requested.startsWith(prefix)) {
+        const variation = requested.substring(prefix.length).trim();
+        if (variation && !possibleNames.includes(variation)) {
+          possibleNames.push(variation);
+        }
+      }
+    }
+    
+    // Add variations by splitting on common separators and taking parts
+    if (requested.includes(' ')) {
+      const parts = requested.split(/\s+/);
+      for (const part of parts) {
+        if (part && !possibleNames.includes(part)) {
+          possibleNames.push(part);
+        }
+      }
+    }
+    
+    if (requested.includes('-')) {
+      const parts = requested.split('-');
+      for (const part of parts) {
+        if (part && !possibleNames.includes(part)) {
+          possibleNames.push(part);
+        }
+      }
+    }
+    
+    if (requested.includes('_')) {
+      const parts = requested.split('_');
+      for (const part of parts) {
+        if (part && !possibleNames.includes(part)) {
+          possibleNames.push(part);
+        }
+      }
+    }
+    
+    // Add common abbreviations/expansions
+    const commonMappings: [string, string][] = [
+      ['customer', 'cust'],
+      ['customer', 'crm'],
+      ['project', 'proj'],
+      ['employee', 'emp'],
+      ['organization', 'org'],
+      ['department', 'dept'],
+      ['application', 'app'],
+      ['information', 'info'],
+      ['document', 'doc'],
+      ['contract', 'contract'],
+      ['product', 'prod'],
+      ['order', 'ord'],
+      ['payment', 'pay'],
+      ['purchase', 'buy'],
+      ['report', 'rep'],
+      ['data', 'dt'],
+      ['service', 'svc'],
+      ['group', 'grp'],
+      ['user', 'usr'],
+      ['config', 'cfg']
+    ];
+    
+    for (const [full, abbrev] of commonMappings) {
+      if (requested.includes(full)) {
+        const variation = requested.replace(new RegExp(full, 'g'), abbrev);
+        if (!possibleNames.includes(variation)) {
+          possibleNames.push(variation);
+        }
+      } else if (requested.includes(abbrev)) {
+        const variation = requested.replace(new RegExp(abbrev, 'g'), full);
+        if (!possibleNames.includes(variation)) {
+          possibleNames.push(variation);
+        }
+      }
+    }
+    
+    return possibleNames;
   }
 
   /**
@@ -720,42 +847,56 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
 }
 
 const queryApiToolDescription = `
-Queries API documentation to find service interfaces and their fields. Use this when you need to list all interfaces in a service (e.g., "list all methods in hr group service") or find specific operations (e.g., "how to save group?", "list group query methods"). The service_name should be a normalized version of the service description from the API documentation file names (e.g., "hr分组服务" maps to "group", "user management" maps to "user").
+Queries API documentation to find service interfaces and their fields. This tool is essential when implementing frontend pages that need to interact with backend APIs. It helps identify the exact input fields required for API requests and the structure of API responses.
+
+Use this when you need to determine:
+- Input fields required to create or update data (e.g., "What fields do I need to create a customer?")
+- API endpoints for specific operations (e.g., "How to save a project?")
+- Response structure from API calls (e.g., "What data comes back from customer query?")
+
+The service_name should be a normalized version of the service description from the API documentation file names (e.g., "hr分组服务" maps to "group", "客户拜访-CrmCustomerVisitApi.md" maps to "customer").
 
 ## When to Use This Tool
 Use this tool in the following scenarios:
 
-1. **Service-level queries** - When you need to list all interfaces in a specific service (e.g., "Show all methods in user management service")
-2. **Method-level queries** - When you need to find specific operations by keyword (e.g., "Find how to create a user", "Show update operations")
-3. **Field-level parsing** - When you need detailed information about request/response fields, types, and examples
-4. **Natural language mapping** - When users ask in Chinese or English for specific API functionality
+1. **Frontend form development** - When you need to know what fields to include in forms or data entry pages
+2. **API integration** - When implementing API calls to determine request/response structure 
+3. **Service-level queries** - When you need to list all interfaces in a specific service (e.g., "Show all methods in customer service")
+4. **Method-level queries** - When you need to find specific operations by keyword (e.g., "Find customer search method")
+5. **Field-level parsing** - When you need detailed field information for frontend validation or display
 
 ## How to Use This Tool
 
 ### Required Parameters:
-- **service_name**: The normalized service name (e.g., "group", "user", "order") that maps from documentation file titles like "hr分组服务" -> "group"
+- **service_name**: The normalized service name (e.g., "customer", "project", "contract") that maps from documentation file titles like "客户拜访-CrmCustomerVisitApi.md" -> "customer"
 
 ### Optional Parameters:
-- **operation_keyword**: Keywords to filter specific methods (e.g., "save", "query", "get", "create", "分页查询", "保存", "获取"). Leave empty to list all methods in the service.
+- **operation_keyword**: Keywords to filter specific methods (e.g., "save", "query", "get", "create", "search", "分页查询", "保存", "获取"). Leave empty to list all methods in the service.
 
 ## Examples of Usage
 
 <example>
-User: "How do I save a group?"
-Assistant: Uses QueryApiTool with service_name="group", operation_keyword="save"
-Returns: Details about the save group endpoint, required fields, and examples
+User: "I need to build a customer creation form. What fields do I need?"
+Assistant: Uses QueryApiTool with service_name="customer", operation_keyword="create"
+Returns: All required and optional fields for customer creation API
 </example>
 
 <example>
-User: "Show all methods in hr分组服务"
-Assistant: Uses QueryApiTool with service_name="group" (normalized from hr分组服务), no operation_keyword
-Returns: All available methods in the group service
+User: "How do I retrieve customer information?"
+Assistant: Uses QueryApiTool with service_name="customer", operation_keyword="get"
+Returns: Details about customer retrieval endpoint, required fields, and response structure
 </example>
 
 <example>
-User: "What fields are needed for pagination query?"
-Assistant: Uses QueryApiTool with service_name="group" and operation_keyword="pagination" or "query"
-Returns: Request fields, types, and descriptions for pagination endpoints
+User: "Show all methods in 客户拜访 service"
+Assistant: Uses QueryApiTool with service_name="customer" (normalized from 客户拜访), no operation_keyword  
+Returns: All available methods in the customer service
+</example>
+
+<example>
+User: "What fields do I need to submit for a project?"
+Assistant: Uses QueryApiTool with service_name="project" and operation_keyword="submit"
+Returns: Request fields, types, and descriptions for project submission endpoints
 </example>
 
 ## What This Tool Returns
@@ -763,11 +904,11 @@ Returns: Request fields, types, and descriptions for pagination endpoints
 The tool returns structured JSON with:
 - Service information (name, display name)
 - Method details (API description, HTTP method, path)
-- Request parameters (field names, types, descriptions)
-- Response schema (structure and field information)
+- Request parameters (field names, types, descriptions) - critical for frontend form building
+- Response schema (structure and field information) - important for frontend data handling
 - Example values for both request and response
 
-When in doubt about API functionality, use this tool to look up the precise interface specifications.
+This tool is essential for frontend development as it provides precise field definitions that you need to implement API calls correctly in your frontend code.
 `;
 
 /**
@@ -790,11 +931,11 @@ export class QueryApiTool extends BaseDeclarativeTool<QueryApiToolParams, ToolRe
         properties: {
           service_name: {
             type: 'string',
-            description: 'Service name normalized from file titles (e.g., "hr分组服务" -> "group", "用户管理" -> "user", "订单管理" -> "order"). Use simplified names like "group", "user", "order" that represent the core function.',
+            description: 'Service name normalized from file titles.',
           },
           operation_keyword: {
             type: 'string',
-            description: 'Operation keyword to filter specific methods (e.g., "save", "query", "get", "create", "分页查询", "保存", "获取"). Leave empty to list all methods in the service.',
+            description: 'Operation keyword to filter specific methods (e.g., "save", "query", "get", "create", "分页查询", "保存", "获取",  "更新"). Leave empty to list all methods in the service.',
           }
         },
         required: ['service_name'],
