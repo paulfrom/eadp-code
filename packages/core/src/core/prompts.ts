@@ -273,6 +273,7 @@ IMPORTANT: Always use the ${ToolNames.TODO_WRITE} tool to plan and track tasks t
 
 ## Tool Usage
 - **File Paths:** Always use absolute paths when referring to files with tools like '${ToolNames.READ_FILE}' or '${ToolNames.WRITE_FILE}'. Relative paths are not supported. You must provide an absolute path.
+- **API search:** Use the '${ToolNames.QUERY_API}' tool to explore and understand backend APIs before attempting to call them. This ensures accurate usage of request parameters and handling of responses.
 - **Parallelism:** Execute multiple independent tool calls in parallel when feasible (i.e. searching the codebase).
 - **Command Execution:** Use the '${ToolNames.SHELL}' tool for running shell commands, remembering the safety rule to explain modifying commands first.
 - **Background Processes:** Use background processes (via \`&\`) for commands that are unlikely to stop on their own, e.g. \`node server.js &\`. If unsure, ask the user.
