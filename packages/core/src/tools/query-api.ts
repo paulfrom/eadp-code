@@ -39,12 +39,15 @@ interface ApiServiceInfo {
 export interface QueryApiToolParams {
   /**
    * Service name to search within (e.g., "group", "order", "user")
-   * This is extracted from the filename: e.g., hr分组服务-HrGroupApi.md → "group"
+   * Must not contain spaces or special characters except hyphens and underscores.
+   * Valid characters: alphanumeric characters, hyphens, underscores, and Chinese characters.
+   * Invalid characters: spaces, < > : " | ? * and other special characters.
    */
   service_name: string;
   /**
    * Optional: operation keyword to filter specific API methods (e.g., "保存", "分页查询", "create", "list")
    * This matches against the API description to find specific operations
+   * Must not contain special characters that could cause security issues.
    */
   operation_keyword?: string;
 }
@@ -91,10 +94,53 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
     return description;
   }
 
+  /**
+   * Checks if a path is within the root directory and resolves it.
+   * @param relativePath Path relative to the root directory (or undefined for root).
+   * @returns The absolute path if valid and exists, or null if no path specified (to search all directories).
+   * @throws {Error} If path is outside root, doesn't exist, or isn't a directory.
+   */
+  private resolveAndValidatePath(relativePath?: string): string | null {
+    // If no path specified, return null to indicate searching all workspace directories
+    if (!relativePath) {
+      return null;
+    }
+
+    const targetPath = path.resolve(this.config.storage.getGeminiDir(), relativePath);
+
+    // Check existence and type after resolving
+    try {
+      const stats = fs.statSync(targetPath);
+      if (!stats.isDirectory()) {
+        throw new Error(`Path is not a directory: ${targetPath}`);
+      }
+    } catch (error: unknown) {
+      const nodeError = error as NodeJS.ErrnoException;
+      if (nodeError.code !== 'ENOENT') {
+        throw new Error(`Path does not exist: ${targetPath}`);
+      }
+      throw new Error(
+        `Failed to access path stats for ${targetPath}: ${error}`,
+      );
+    }
+
+    return targetPath;
+  }
+
   async execute(): Promise<ToolResult> {
     try {
-      // Get the API directory path
+      // Get the API directory path with validation
       const apiDir = path.join(this.config.storage.getGeminiDir(), 'api');
+      
+      // Validate API directory path
+      try {
+        this.resolveAndValidatePath('api');
+      } catch (error) {
+        return {
+          llmContent: `API目录验证失败: ${(error as Error).message}\nAPI directory validation failed: ${(error as Error).message}`,
+          returnDisplay: `API directory validation failed`,
+        };
+      }
       
       if (!fs.existsSync(apiDir)) {
         return {
@@ -104,7 +150,15 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
       }
 
       // Get all API documentation files
-      const apiFiles = fs.readdirSync(apiDir);
+      let apiFiles: string[] = [];
+      try {
+        apiFiles = fs.readdirSync(apiDir);
+      } catch (error) {
+        return {
+          llmContent: `无法读取API文档目录 ${apiDir}。错误: ${(error as Error).message}\nCannot read API documentation directory ${apiDir}. Error: ${(error as Error).message}`,
+          returnDisplay: `Cannot read API documentation directory`,
+        };
+      }
 
       if (apiFiles.length === 0) {
         return {
@@ -119,13 +173,19 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
         allServices = [];
         // Process each API file to build structured data
         for (const file of apiFiles) {
-          const filePath = path.join(apiDir, file);
-          const content = fs.readFileSync(filePath, 'utf-8');
-          
-          // Parse the file to extract API information
-          const serviceInfo = this.parseApiFile(file, content);
-          if (serviceInfo) {
-            allServices.push(serviceInfo);
+          try {
+            const filePath = path.join(apiDir, file);
+            const content = fs.readFileSync(filePath, 'utf-8');
+            
+            // Parse the file to extract API information
+            const serviceInfo = this.parseApiFile(file, content);
+            if (serviceInfo) {
+              allServices.push(serviceInfo);
+            }
+          } catch (error) {
+            console.warn(`Warning: Failed to parse API file ${file}:`, error);
+            // Continue with other files even if one fails
+            continue;
           }
         }
         
@@ -137,39 +197,109 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
       // and returns the one with the highest match score
       const requestedServiceName = this.params.service_name.toLowerCase();
       
-      // Generate multiple possible service name interpretations for flexible matching
-      const possibleServiceNames = this.generatePossibleServiceNames(requestedServiceName);
+      // Check if this is a pattern-based query (e.g., '\s+Api', '\s+服务', '\s+接口')
+      const isPatternQuery = requestedServiceName.includes('\\s+') || 
+                             requestedServiceName === 'api' || 
+                             requestedServiceName === '服务' || 
+                             requestedServiceName === '接口';
       
-      // Collect all possible matches with their scores across all possible interpretations
-      const allPossibleMatches = [];
+      // Check if this is a multi-term query with | separator
+      const hasMultipleTerms = requestedServiceName.includes('|');
       
-      for (const possibleName of possibleServiceNames) {
-        const matchesForThisName = allServices.map(service => {
-          const score = this.calculateServiceMatchScore(possibleName, service);
-          return { service, score, originalName: possibleName };
-        }).filter(item => item.score > 0);
-        
-        allPossibleMatches.push(...matchesForThisName);
+      if (isPatternQuery) {
+        // For pattern queries, return all services that match the pattern
+        const matchingServices = this.findAllServicesMatchingPattern(requestedServiceName, allServices);
+        if (matchingServices.length > 0) {
+          // Create a combined result with all matching services
+          const combinedResult: ApiServiceInfo = {
+            service_name: `pattern_match_${requestedServiceName}`,
+            service_display_name: `Services matching pattern: ${requestedServiceName}`,
+            methods: matchingServices.flatMap(service => service.methods)
+          };
+          
+          // Limit results for performance (similar to ripGrep's approach)
+          const MAX_RESULTS = 20000;
+          const wasTruncated = combinedResult.methods.length > MAX_RESULTS;
+          if (wasTruncated) {
+            combinedResult.methods = combinedResult.methods.slice(0, MAX_RESULTS);
+          }
+          
+          let llmContent = JSON.stringify(combinedResult, null, 2);
+          if (wasTruncated) {
+            llmContent += `\n\n注: 结果已被截断，仅显示前${MAX_RESULTS}个方法以提高性能。\nNote: Results were truncated, showing only the first ${MAX_RESULTS} methods for performance.`;
+          }
+          
+          let returnDisplay = `Found ${matchingServices.length} service(s) matching pattern "${requestedServiceName}"`;
+          if (wasTruncated) {
+            returnDisplay += ` (limited to ${MAX_RESULTS} methods)`;
+          }
+          
+          return {
+            llmContent,
+            returnDisplay,
+          };
+        } else {
+          // If no services match the pattern, return an appropriate message
+          const availableServices = allServices.map(s => s.service_name).join(', ');
+          return {
+            llmContent: `未找到匹配模式 "${requestedServiceName}" 的服务。\nNo services found matching pattern: "${requestedServiceName}". Available services: ${availableServices}`,
+            returnDisplay: `No services found matching pattern "${requestedServiceName}"`,
+          };
+        }
       }
       
-      // Sort all matches by score in descending order
-      const sortedMatches = allPossibleMatches.sort((a, b) => b.score - a.score);
+      // Handle multi-term queries (terms separated by |)
+      let serviceTerms: string[] = [];
+      if (hasMultipleTerms) {
+        // Split by | and trim whitespace
+        serviceTerms = requestedServiceName.split('|').map(term => term.trim()).filter(term => term.length > 0);
+      } else {
+        serviceTerms = [requestedServiceName];
+      }
       
-      // If we have matches, return the one with the highest score
+      // Try to find a service that matches any of the provided terms
       let serviceInfo = null;
-      if (sortedMatches.length > 0) {
-        serviceInfo = sortedMatches[0].service;
+      
+      // First, try exact matches for any term
+      for (const term of serviceTerms) {
+        const exactMatch = allServices.find(service => 
+          service.service_name.toLowerCase() === term.toLowerCase() || 
+          service.service_display_name.toLowerCase() === term.toLowerCase()
+        );
+        if (exactMatch) {
+          serviceInfo = exactMatch;
+          break;
+        }
       }
       
+      // If no exact match, try fuzzy matching for each term
       if (!serviceInfo) {
+        let bestMatchScore = 0;
+        for (const term of serviceTerms) {
+          // Generate possible service name interpretations for this term
+          const possibleServiceNames = this.generatePossibleServiceNames(term);
+          
+          // Check all services against all possible interpretations of this term
+          for (const service of allServices) {
+            for (const possibleName of possibleServiceNames) {
+              const score = this.calculateServiceMatchScore(possibleName, service);
+              if (score > bestMatchScore) {
+                bestMatchScore = score;
+                serviceInfo = service;
+              }
+            }
+          }
+        }
+      // If we still don't have a service match, try to suggest similar services based on any of the terms
         // If service not found, try to suggest similar services based on the original request
         const suggestions = this.findSimilarServices(this.params.service_name, allServices);
         const suggestionText = suggestions.length > 0 
-          ? ` Did you mean: ${suggestions.map(s => `"${s.service_name}"`).join(', ')}? Available services: ${allServices.map(s => s.service_name).join(', ')}` 
-          : ` Available services: ${allServices.map(s => s.service_name).join(', ')}`;
+          ? ` Did you mean: ${suggestions.map(s => `"${s.service_name}"`).join(', ')}?` 
+          : '';
+        const availableServices = allServices.map(s => s.service_name).join(', ');
           
         return {
-          llmContent: `未找到服务 "${this.params.service_name}" 的API信息。\nNo API information found for service: "${this.params.service_name}".${suggestionText}`,
+          llmContent: `未找到服务 "${this.params.service_name}" 的API信息。\nNo API information found for service: "${this.params.service_name}".${suggestionText} Available services: ${availableServices}`,
           returnDisplay: `Service "${this.params.service_name}" not found`,
         };
       }
@@ -185,22 +315,39 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
       }
 
       if (methods.length === 0) {
+        const availableMethods = serviceInfo.methods.map(m => m.api_desc).join(', ');
         return {
-          llmContent: `服务 "${serviceInfo.service_display_name}" 中未找到匹配 "${this.params.operation_keyword}" 的接口。\nNo API methods found matching keyword "${this.params.operation_keyword}" in service "${serviceInfo.service_display_name}". Available methods: ${serviceInfo.methods.map(m => m.api_desc).join(', ')}`,
+          llmContent: `服务 "${serviceInfo.service_display_name}" 中未找到匹配 "${this.params.operation_keyword}" 的接口。\nNo API methods found matching keyword "${this.params.operation_keyword}" in service "${serviceInfo.service_display_name}". Available methods: ${availableMethods}`,
           returnDisplay: `No matching API methods found`,
         };
       }
 
-      // Format the result for LLM consumption
+      // Format the result for LLM consumption with performance limits (similar to ripGrep)
+      const MAX_RESULTS = 20000;
+      const wasTruncated = methods.length > MAX_RESULTS;
+      if (wasTruncated) {
+        methods = methods.slice(0, MAX_RESULTS);
+      }
+      
       const result: ApiServiceInfo = {
         service_name: serviceInfo.service_name,
         service_display_name: serviceInfo.service_display_name,
         methods
       };
 
+      let llmContent = JSON.stringify(result, null, 2);
+      if (wasTruncated) {
+        llmContent += `\n\n注: 结果已被截断，仅显示前${MAX_RESULTS}个方法以提高性能。\nNote: Results were truncated, showing only the first ${MAX_RESULTS} methods for performance.`;
+      }
+      
+      let returnDisplay = `Found ${methods.length} API method(s) in service "${serviceInfo.service_display_name}"`;
+      if (wasTruncated) {
+        returnDisplay += ` (limited to ${MAX_RESULTS} methods)`;
+      }
+
       return {
-        llmContent: JSON.stringify(result, null, 2),
-        returnDisplay: `Found ${methods.length} API method(s) in service "${serviceInfo.service_display_name}"`,
+        llmContent,
+        returnDisplay,
       };
     } catch (error) {
       const errorMessage = `查询API信息时出错: ${(error as Error).message}\nError querying API information: ${(error as Error).message}`;
@@ -246,10 +393,18 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
     
     // Try to get the service name from the second part of the filename (e.g., HrGroupApi)
     const secondPart = fullFilename.split('-')[1] || fullFilename;
+    
     // Extract the service name by looking for common patterns like HrGroupApi -> group
-    const serviceMatch = secondPart.match(/([A-Z][a-z]+)Api/i);
+    // Handle various API suffix patterns
+    const serviceMatch = secondPart.match(/([A-Z][a-z]+)(?:Api|Service|Controller|Interface|Endpoint|Rest)/i);
     if (serviceMatch) {
       return serviceMatch[1].toLowerCase();
+    }
+    
+    // Handle more complex patterns with suffixes like HrGroupApiService -> group
+    const complexMatch = secondPart.match(/(?:[A-Z][a-z]+)*([A-Z][a-z]+)(?:Api|Service|Controller|Interface|Endpoint|Rest)[A-Z][a-z]*/i);
+    if (complexMatch) {
+      return complexMatch[1].toLowerCase();
     }
     
     // Fallback to using the original name part if no API pattern is found
@@ -575,6 +730,11 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
     const serviceName = service.service_name.toLowerCase();
     const requestedLower = requested.toLowerCase();
     
+    // Check if the requested pattern is a regex pattern that should match the service name structure
+    if (this.isRegexPatternMatch(requestedLower, serviceDisplayName, serviceName)) {
+      return 90; // High score for pattern matches
+    }
+    
     // Exact match - highest score
     if (serviceName === requestedLower || serviceDisplayName === requestedLower) {
       return 100;
@@ -708,6 +868,59 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
   }
 
   /**
+   * Check if the requested pattern is a regex pattern that should match service name structures
+   * Handles patterns like '\s+Api', '\s+服务', '\s+接口'
+   */
+  private isRegexPatternMatch(requested: string, serviceDisplayName: string, serviceName: string): boolean {
+    // Check if the requested string is a regex pattern for common service name structures
+    try {
+      // Handle specific regex patterns that match common service naming conventions
+      if (requested === '\\s+api' || requested === 'api') {
+        // Match services that end with 'Api' (case insensitive)
+        return /api$/i.test(serviceName) || /api/i.test(serviceDisplayName) || /api$/i.test(serviceName);
+      }
+      
+      if (requested === '\\s+服务' || requested === '服务') {
+        // Match services that contain '服务' in their display name
+        return serviceDisplayName.includes('服务');
+      }
+      
+      if (requested === '\\s+接口' || requested === '接口') {
+        // Match services that contain '接口' in their display name
+        return serviceDisplayName.includes('接口');
+      }
+      
+      // Handle general regex patterns that might be checking for suffixes
+      if (requested.includes('\\s+') && requested.includes('api')) {
+        // Pattern like '\s+Api' - check if service name ends with 'Api'
+        return /api$/i.test(serviceName);
+      }
+      
+      if (requested.includes('\\s+') && requested.includes('服务')) {
+        // Pattern like '\s+服务' - check if service display name contains '服务'
+        return serviceDisplayName.includes('服务');
+      }
+      
+      if (requested.includes('\\s+') && requested.includes('接口')) {
+        // Pattern like '\s+接口' - check if service display name contains '接口'
+        return serviceDisplayName.includes('接口');
+      }
+      
+      // Try to parse as a literal regex pattern if it starts and ends with '/'
+      if (requested.startsWith('/') && requested.endsWith('/')) {
+        const pattern = requested.slice(1, -1);
+        const regex = new RegExp(pattern, 'i');
+        return regex.test(serviceName) || regex.test(serviceDisplayName);
+      }
+    } catch (e) {
+      // If regex parsing fails, continue with normal matching
+      console.debug(`Failed to parse regex pattern: ${requested}`, e);
+    }
+    
+    return false;
+  }
+
+  /**
    * Generate multiple possible service name interpretations for flexible matching
    */
   private generatePossibleServiceNames(requested: string): string[] {
@@ -812,6 +1025,38 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
   }
 
   /**
+   * Find all services that match a specific pattern
+   */
+  private findAllServicesMatchingPattern(pattern: string, allServices: ApiServiceInfo[]): ApiServiceInfo[] {
+    // Special case: if pattern is requesting all API services, return services ending with Api
+    if (pattern === '\\s+api' || pattern === 'api') {
+      return allServices.filter(service => 
+        /api$/i.test(service.service_name) || 
+        service.service_name.toLowerCase().includes('api')
+      );
+    }
+    
+    // Special case: if pattern is requesting all services with '服务' in display name
+    if (pattern === '\\s+服务' || pattern === '服务') {
+      return allServices.filter(service => 
+        service.service_display_name.includes('服务')
+      );
+    }
+    
+    // Special case: if pattern is requesting all services with '接口' in display name
+    if (pattern === '\\s+接口' || pattern === '接口') {
+      return allServices.filter(service => 
+        service.service_display_name.includes('接口')
+      );
+    }
+    
+    // For general pattern matching, check if any service matches
+    return allServices.filter(service => 
+      this.isRegexPatternMatch(pattern, service.service_display_name, service.service_name)
+    );
+  }
+
+  /**
    * Find services that are similar to the requested name for suggestions
    */
   private findSimilarServices(requested: string, allServices: ApiServiceInfo[]): ApiServiceInfo[] {
@@ -847,28 +1092,37 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
 }
 
 const queryApiToolDescription = `
-Queries API documentation to find service interfaces and their fields. This tool is essential when implementing frontend pages that need to interact with backend APIs. It helps identify the exact input fields required for API requests and the structure of API responses.
+Queries API documentation to find service interfaces and their fields. This is the PRIMARY tool for confirming API functionality and should be used whenever you need to verify API endpoints, request/response structures, or field definitions. It helps identify the exact input fields required for API requests and the structure of API responses.
 
 Use this when you need to determine:
 - Input fields required to create or update data (e.g., "What fields do I need to create a customer?")
 - API endpoints for specific operations (e.g., "How to save a project?")
 - Response structure from API calls (e.g., "What data comes back from customer query?")
+- Complete API specifications before implementing any API integration
 
-The service_name should be a normalized version of the service description from the API documentation file names (e.g., "hr分组服务" maps to "group", "客户拜访-CrmCustomerVisitApi.md" maps to "customer").
+The service_name should be a normalized version of the service description from the API documentation file names (e.g., "hr分组服务-HrGroupApi.md" → "group", "客户拜访-CrmCustomerVisitApi.md" → "customer"). Service names must not contain spaces or special characters except hyphens and underscores. Valid characters: alphanumeric characters, hyphens, underscores, and Chinese characters. Invalid characters: spaces, < > : " | ? * and other special characters.
 
-## When to Use This Tool
-Use this tool in the following scenarios:
+You can also use regex patterns to match multiple services:
+- "\\s+Api" - Matches all services with "Api" suffix
+- "\\s+服务" - Matches all services with "服务" in the display name
+- "\\s+接口" - Matches all services with "接口" in the display name
+- "user|employee|staff" - Matches services containing any of these terms
 
-1. **Frontend form development** - When you need to know what fields to include in forms or data entry pages
-2. **API integration** - When implementing API calls to determine request/response structure 
-3. **Service-level queries** - When you need to list all interfaces in a specific service (e.g., "Show all methods in customer service")
-4. **Method-level queries** - When you need to find specific operations by keyword (e.g., "Find customer search method")
-5. **Field-level parsing** - When you need detailed field information for frontend validation or display
+## When to Use This Tool (PRIORITY 1)
+This is the first tool to use when confirming any API functionality. Use this tool in the following scenarios:
+
+1. **API verification (Primary Use)** - Always check API availability and structure FIRST before implementing any API integration
+2. **Frontend form development** - When you need to know what fields to include in forms or data entry pages
+3. **API integration** - When implementing API calls to determine request/response structure 
+4. **Service-level queries** - When you need to list all interfaces in a specific service (e.g., "Show all methods in customer service")
+5. **Method-level queries** - When you need to find specific operations by keyword (e.g., "Find customer search method")
+6. **Field-level parsing** - When you need detailed field information for frontend validation or display
 
 ## How to Use This Tool
 
 ### Required Parameters:
 - **service_name**: The normalized service name (e.g., "customer", "project", "contract") that maps from documentation file titles like "客户拜访-CrmCustomerVisitApi.md" -> "customer"
+  You can also provide multiple related terms separated by | (e.g., "user|employee", "客户|customer|客戶", "groupApi|分组服务|group接口")
 
 ### Optional Parameters:
 - **operation_keyword**: Keywords to filter specific methods (e.g., "save", "query", "get", "create", "search", "分页查询", "保存", "获取"). Leave empty to list all methods in the service.
@@ -899,6 +1153,18 @@ Assistant: Uses QueryApiTool with service_name="project" and operation_keyword="
 Returns: Request fields, types, and descriptions for project submission endpoints
 </example>
 
+<example>
+User: "Find the user management API"
+Assistant: Uses QueryApiTool with service_name="user|employee|staff"  
+Returns: Services matching any of these terms
+</example>
+
+<example>
+User: "How to work with customers in Chinese?"
+Assistant: Uses QueryApiTool with service_name="客户|customer|客戶"  
+Returns: Services matching any of these translation terms
+</example>
+
 ## What This Tool Returns
 
 The tool returns structured JSON with:
@@ -908,7 +1174,9 @@ The tool returns structured JSON with:
 - Response schema (structure and field information) - important for frontend data handling
 - Example values for both request and response
 
-This tool is essential for frontend development as it provides precise field definitions that you need to implement API calls correctly in your frontend code.
+IMPORTANT: This is the primary and preferred tool for confirming any API functionality. Always use this tool first when you need to verify API endpoints, parameters, or response structures before implementing any API integration.
+
+Total results are limited to 20,000 matches for performance, similar to ripGrep.
 `;
 
 /**
@@ -931,11 +1199,11 @@ export class QueryApiTool extends BaseDeclarativeTool<QueryApiToolParams, ToolRe
         properties: {
           service_name: {
             type: 'string',
-            description: 'Service name normalized from file titles.',
+            description: "Service name to search within (e.g., \"group\", \"order\", \"user\") or regex pattern to match service structures (e.g., \"\\s+Api\", \"\\s+服务\", \"\\s+接口\"). This is extracted from the filename: e.g., hr分组服务-HrGroupApi.md → \"group\". Service names must not contain spaces or special characters except hyphens and underscores. Valid characters: alphanumeric characters, hyphens, underscores, and Chinese characters. Invalid characters: spaces, < > : \" | ? * and other special characters.",
           },
           operation_keyword: {
             type: 'string',
-            description: 'Operation keyword to filter specific methods (e.g., "save", "query", "get", "create", "分页查询", "保存", "获取",  "更新"). Leave empty to list all methods in the service.',
+            description: 'Operation keyword to filter specific methods (e.g., "save", "query", "get", "create", "分页查询", "保存", "获取", "更新"). Leave empty to list all methods in the service.',
           }
         },
         required: ['service_name'],
@@ -959,6 +1227,17 @@ export class QueryApiTool extends BaseDeclarativeTool<QueryApiToolParams, ToolRe
 
     if (params.service_name.length < 2) {
       return "The 'service_name' parameter should be at least 2 characters long.";
+    }
+
+    // Validate that the service name doesn't contain dangerous characters
+    if (/[<>:"|?*]/.test(params.service_name)) {
+      return "The 'service_name' parameter contains invalid characters.";
+    }
+    
+    // Explicitly prevent spaces and other special characters that could cause issues
+    // Allow only alphanumeric characters, hyphens, underscores, and Chinese characters
+    if (/[^a-zA-Z0-9\u4e00-\u9fa5\-_]/.test(params.service_name)) {
+      return "The 'service_name' parameter contains invalid characters. Only alphanumeric characters, hyphens, underscores, and Chinese characters are allowed. Spaces and other special characters are not permitted.";
     }
 
     return null;
