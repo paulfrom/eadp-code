@@ -1,5 +1,5 @@
 {
-  "name": "@qwen-code/qwen-code",
+  "name": "eadp-code",
   "version": "0.0.14",
   "engines": {
     "node": ">=20.0.0"
