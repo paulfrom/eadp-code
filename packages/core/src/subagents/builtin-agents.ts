@@ -5,7 +5,8 @@
  */
 
 import type { SubagentConfig } from './types.js';
-import { FrontendPageGeneratorSubagent } from './frontend-page-generator.js';
+import { EadpFrontendGuideSubagent } from './eadp-frontend-guide.js';
+import { EadpBackendGuideSubagent } from './eadp-backend-guide.js';
 
 /**
  * Registry of built-in subagents that are always available to all users.
@@ -44,9 +45,14 @@ Notes:
 - For clear communication with the user the assistant MUST avoid using emojis.`,
     },
     {
-      name: FrontendPageGeneratorSubagent.Name,
-      description: FrontendPageGeneratorSubagent.Description,
-      systemPrompt: new FrontendPageGeneratorSubagent().systemPrompt,
+      name: EadpFrontendGuideSubagent.Name,
+      description: EadpFrontendGuideSubagent.Description,
+      systemPrompt: new EadpFrontendGuideSubagent().systemPrompt,
+    },
+    {
+      name: EadpBackendGuideSubagent.Name,
+      description: EadpBackendGuideSubagent.Description,
+      systemPrompt: new EadpBackendGuideSubagent().systemPrompt,
     },
   ];
 

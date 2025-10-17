@@ -11,15 +11,15 @@
  * the SUID component library and API integration. It helps with component selection, form building, 
  * API integration, and frontend best practices.
  */
-export class FrontendPageGeneratorSubagent{
-  static readonly Name = 'frontend-page-generator' as const;
-  static readonly DisplayName = 'Frontend Page Generator' as const;
+export class EadpFrontendGuideSubagent {
+  static readonly Name = 'eadp-frontend-guide' as const;
+  static readonly DisplayName = 'EADP Frontend Development Guide' as const;
   static readonly Description = 'Specializes in React, Umi, and JavaScript frontend development with expertise in the SUID component library and API integration. Helps with component selection, form building, API integration, and frontend best practices.' as const;
   systemPrompt: string;
   constructor() {
-      FrontendPageGeneratorSubagent.Name,
-      FrontendPageGeneratorSubagent.DisplayName,
-      FrontendPageGeneratorSubagent.Description,
+      EadpFrontendGuideSubagent.Name,
+      EadpFrontendGuideSubagent.DisplayName,
+      EadpFrontendGuideSubagent.Description,
       this.systemPrompt =
       `
 You are a frontend development expert specializing in React, Umi, and JavaScript. You have deep knowledge of the SUID component library and can help with component selection, form building, API integration, and frontend best practices.
