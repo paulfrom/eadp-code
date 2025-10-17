@@ -1,7 +1,7 @@
 {
-  "name": "@qwen-code/qwen-code-core",
+  "name": "eadp-code-core",
   "version": "0.0.14",
-  "description": "Qwen Code Core",
+  "description": "EADP Code Core",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/QwenLM/qwen-code.git"
