@@ -5,11 +5,11 @@
  */
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import type { Config } from '@qwen-code/qwen-code-core';
+import type { Config } from 'eadp-code-core';
 import {
   DEFAULT_GEMINI_FLASH_LITE_MODEL,
   getResponseText,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import type { Content, GenerateContentConfig } from '@google/genai';
 import type { TextBuffer } from '../components/shared/text-buffer.js';
 import { isSlashCommand } from '../utils/commandUtils.js';

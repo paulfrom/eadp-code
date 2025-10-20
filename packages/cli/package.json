@@ -1,6 +1,6 @@
 {
   "name": "eadp-code",
-  "version": "0.0.14",
+  "version": "0.0.14-alpha7",
   "description": "eadp Code",
   "repository": {
     "type": "git",
@@ -25,19 +25,21 @@
     "dist"
   ],
   "config": {
-    "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.0.14"
+    "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.0.14-alpha7"
   },
   "dependencies": {
     "@google/genai": "1.9.0",
     "@iarna/toml": "^2.2.5",
-    "eadp-code-core": "file:../core",
     "@modelcontextprotocol/sdk": "^1.15.1",
     "@types/update-notifier": "^6.0.8",
+    "cli-spinners": "^2.9.2",
     "command-exists": "^1.2.9",
     "diff": "^7.0.0",
     "dotenv": "^17.1.0",
+    "eadp-code-core": "file:../core",
     "fzf": "^0.5.2",
     "glob": "^10.4.1",
+    "gradient-string": "^2.0.2",
     "highlight.js": "^11.11.1",
     "ink": "^6.2.3",
     "ink-gradient": "^3.0.0",
@@ -50,11 +52,12 @@
     "qrcode-terminal": "^0.12.0",
     "react": "^19.1.0",
     "read-package-up": "^11.0.0",
-    "simple-git": "^3.28.0",
     "shell-quote": "^1.8.3",
+    "simple-git": "^3.28.0",
     "string-width": "^7.1.0",
     "strip-ansi": "^7.1.0",
     "strip-json-comments": "^3.1.1",
+    "terminal-link": "^3.0.0",
     "undici": "^7.10.0",
     "update-notifier": "^7.3.1",
     "yargs": "^17.7.2",
@@ -63,6 +66,7 @@
   "devDependencies": {
     "@babel/runtime": "^7.27.6",
     "@google/gemini-cli-test-utils": "file:../test-utils",
+    "@qwen-code/qwen-code-test-utils": "file:../test-utils",
     "@testing-library/react": "^16.3.0",
     "@types/command-exists": "^1.2.3",
     "@types/diff": "^7.0.2",
@@ -79,8 +83,7 @@
     "pretty-format": "^30.0.2",
     "react-dom": "^19.1.0",
     "typescript": "^5.3.3",
-    "vitest": "^3.1.1",
-    "@qwen-code/qwen-code-test-utils": "file:../test-utils"
+    "vitest": "^3.1.1"
   },
   "engines": {
     "node": ">=20"

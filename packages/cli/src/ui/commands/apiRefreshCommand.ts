@@ -8,8 +8,8 @@ import type {
   SlashCommand,
   SlashCommandActionReturn,
 } from './types.js';
-import type { Config } from '@qwen-code/qwen-code-core';
-import { ApprovalMode } from '@qwen-code/qwen-code-core';
+import type { Config } from 'eadp-code-core';
+import { ApprovalMode } from 'eadp-code-core';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { CommandKind } from './types.js';

@@ -16,7 +16,7 @@ import type {
   ToolCallRequestInfo,
   EditorType,
   ThoughtSummary,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import {
   GeminiEventType as ServerGeminiEventType,
   getErrorMessage,
@@ -33,7 +33,7 @@ import {
   parseAndFormatApiError,
   logApiCancel,
   ApiCancelEvent,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import { type Part, type PartListUnion, FinishReason } from '@google/genai';
 import type {
   HistoryItem,

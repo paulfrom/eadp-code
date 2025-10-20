@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Config, ToolCallRequestInfo } from '@qwen-code/qwen-code-core';
+import type { Config, ToolCallRequestInfo } from 'eadp-code-core';
 import {
   executeToolCall,
   shutdownTelemetry,
@@ -13,7 +13,7 @@ import {
   parseAndFormatApiError,
   FatalInputError,
   FatalTurnLimitedError,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import type { Content, Part } from '@google/genai';
 
 import { ConsolePatcher } from './ui/utils/ConsolePatcher.js';

@@ -14,8 +14,8 @@ import {
 import type { SettingsFile } from './config/settings.js';
 import { LoadedSettings, loadSettings } from './config/settings.js';
 import { appEvents, AppEvent } from './utils/events.js';
-import type { Config } from '@qwen-code/qwen-code-core';
-import { FatalConfigError } from '@qwen-code/qwen-code-core';
+import type { Config } from 'eadp-code-core';
+import { FatalConfigError } from 'eadp-code-core';
 
 // Custom error to identify mock process.exit calls
 class MockProcessExitError extends Error {

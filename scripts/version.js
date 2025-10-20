@@ -42,6 +42,7 @@ const lsOutput = JSON.parse(
   execSync('npm ls --workspaces --json --depth=0').toString(),
 );
 const allWorkspaces = Object.keys(lsOutput.dependencies || {});
+console.log('All workspaces:', allWorkspaces);
 const workspacesToVersion = allWorkspaces.filter(
   (wsName) => !workspacesToExclude.includes(wsName),
 );

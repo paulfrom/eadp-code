@@ -5,12 +5,12 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Config } from '@qwen-code/qwen-code-core';
+import type { Config } from 'eadp-code-core';
 import {
   CodeAssistServer,
   UserTierId,
   LoggingContentGenerator,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 
 export interface PrivacyState {
   isLoading: boolean;
