@@ -5,21 +5,32 @@
  */
 
 import { Text } from 'ink';
+<<<<<<< HEAD
 import { Colors } from '../colors.js';
 import { tokenLimit } from 'eadp-code-core';
+=======
+import { theme } from '../semantic-colors.js';
+import { tokenLimit } from '@qwen-code/qwen-code-core';
+>>>>>>> main
 
 export const ContextUsageDisplay = ({
   promptTokenCount,
   model,
+  terminalWidth,
 }: {
   promptTokenCount: number;
   model: string;
+  terminalWidth: number;
 }) => {
   const percentage = promptTokenCount / tokenLimit(model);
+  const percentageLeft = ((1 - percentage) * 100).toFixed(0);
+
+  const label = terminalWidth < 100 ? '%' : '% context left';
 
   return (
-    <Text color={Colors.Gray}>
-      ({((1 - percentage) * 100).toFixed(0)}% context left)
+    <Text color={theme.text.secondary}>
+      ({percentageLeft}
+      {label})
     </Text>
   );
 };

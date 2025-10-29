@@ -18,8 +18,8 @@ import {
   getMCPServerStatus,
   MCPDiscoveryState,
   MCPServerStatus,
-  mcpServerRequiresOAuth,
   getErrorMessage,
+<<<<<<< HEAD
 } from 'eadp-code-core';
 
 const COLOR_GREEN = '\u001b[32m';
@@ -312,6 +312,13 @@ const getMcpStatus = async (
     content: message,
   };
 };
+=======
+  MCPOAuthTokenStorage,
+  MCPOAuthProvider,
+} from '@qwen-code/qwen-code-core';
+import { appEvents, AppEvent } from '../../utils/events.js';
+import { MessageType, type HistoryItemMcpStatus } from '../types.js';
+>>>>>>> main
 
 const authCommand: SlashCommand = {
   name: 'auth',
@@ -367,6 +374,12 @@ const authCommand: SlashCommand = {
     // Always attempt OAuth authentication, even if not explicitly configured
     // The authentication process will discover OAuth requirements automatically
 
+    const displayListener = (message: string) => {
+      context.ui.addItem({ type: 'info', text: message }, Date.now());
+    };
+
+    appEvents.on(AppEvent.OauthDisplayMessage, displayListener);
+
     try {
       context.ui.addItem(
         {
@@ -376,20 +389,24 @@ const authCommand: SlashCommand = {
         Date.now(),
       );
 
+<<<<<<< HEAD
       // Import dynamically to avoid circular dependencies
       const { MCPOAuthProvider } = await import('eadp-code-core');
 
+=======
+>>>>>>> main
       let oauthConfig = server.oauth;
       if (!oauthConfig) {
         oauthConfig = { enabled: false };
       }
 
-      // Pass the MCP server URL for OAuth discovery
       const mcpServerUrl = server.httpUrl || server.url;
-      await MCPOAuthProvider.authenticate(
+      const authProvider = new MCPOAuthProvider(new MCPOAuthTokenStorage());
+      await authProvider.authenticate(
         serverName,
         oauthConfig,
         mcpServerUrl,
+        appEvents,
       );
 
       context.ui.addItem(
@@ -432,6 +449,8 @@ const authCommand: SlashCommand = {
         messageType: 'error',
         content: `Failed to authenticate with MCP server '${serverName}': ${getErrorMessage(error)}`,
       };
+    } finally {
+      appEvents.removeListener(AppEvent.OauthDisplayMessage, displayListener);
     }
   },
   completion: async (context: CommandContext, partialArg: string) => {
@@ -449,7 +468,28 @@ const listCommand: SlashCommand = {
   name: 'list',
   description: 'List configured MCP servers and tools',
   kind: CommandKind.BUILT_IN,
-  action: async (context: CommandContext, args: string) => {
+  action: async (
+    context: CommandContext,
+    args: string,
+  ): Promise<void | MessageActionReturn> => {
+    const { config } = context.services;
+    if (!config) {
+      return {
+        type: 'message',
+        messageType: 'error',
+        content: 'Config not loaded.',
+      };
+    }
+
+    const toolRegistry = config.getToolRegistry();
+    if (!toolRegistry) {
+      return {
+        type: 'message',
+        messageType: 'error',
+        content: 'Could not retrieve tool registry.',
+      };
+    }
+
     const lowerCaseArgs = args.toLowerCase().split(/\s+/).filter(Boolean);
 
     const hasDesc =
@@ -459,14 +499,79 @@ const listCommand: SlashCommand = {
       lowerCaseArgs.includes('nodescriptions');
     const showSchema = lowerCaseArgs.includes('schema');
 
-    // Show descriptions if `desc` or `schema` is present,
-    // but `nodesc` takes precedence and disables them.
     const showDescriptions = !hasNodesc && (hasDesc || showSchema);
-
-    // Show tips only when no arguments are provided
     const showTips = lowerCaseArgs.length === 0;
 
-    return getMcpStatus(context, showDescriptions, showSchema, showTips);
+    const mcpServers = config.getMcpServers() || {};
+    const serverNames = Object.keys(mcpServers);
+    const blockedMcpServers = config.getBlockedMcpServers() || [];
+
+    const connectingServers = serverNames.filter(
+      (name) => getMCPServerStatus(name) === MCPServerStatus.CONNECTING,
+    );
+    const discoveryState = getMCPDiscoveryState();
+    const discoveryInProgress =
+      discoveryState === MCPDiscoveryState.IN_PROGRESS ||
+      connectingServers.length > 0;
+
+    const allTools = toolRegistry.getAllTools();
+    const mcpTools = allTools.filter(
+      (tool) => tool instanceof DiscoveredMCPTool,
+    ) as DiscoveredMCPTool[];
+
+    const promptRegistry = await config.getPromptRegistry();
+    const mcpPrompts = promptRegistry
+      .getAllPrompts()
+      .filter(
+        (prompt) =>
+          'serverName' in prompt &&
+          serverNames.includes(prompt.serverName as string),
+      ) as DiscoveredMCPPrompt[];
+
+    const authStatus: HistoryItemMcpStatus['authStatus'] = {};
+    const tokenStorage = new MCPOAuthTokenStorage();
+    for (const serverName of serverNames) {
+      const server = mcpServers[serverName];
+      if (server.oauth?.enabled) {
+        const creds = await tokenStorage.getCredentials(serverName);
+        if (creds) {
+          if (creds.token.expiresAt && creds.token.expiresAt < Date.now()) {
+            authStatus[serverName] = 'expired';
+          } else {
+            authStatus[serverName] = 'authenticated';
+          }
+        } else {
+          authStatus[serverName] = 'unauthenticated';
+        }
+      } else {
+        authStatus[serverName] = 'not-configured';
+      }
+    }
+
+    const mcpStatusItem: HistoryItemMcpStatus = {
+      type: MessageType.MCP_STATUS,
+      servers: mcpServers,
+      tools: mcpTools.map((tool) => ({
+        serverName: tool.serverName,
+        name: tool.name,
+        description: tool.description,
+        schema: tool.schema,
+      })),
+      prompts: mcpPrompts.map((prompt) => ({
+        serverName: prompt.serverName as string,
+        name: prompt.name,
+        description: prompt.description,
+      })),
+      authStatus,
+      blockedServers: blockedMcpServers,
+      discoveryInProgress,
+      connectingServers,
+      showDescriptions,
+      showSchema,
+      showTips,
+    };
+
+    context.ui.addItem(mcpStatusItem, Date.now());
   },
 };
 
@@ -476,7 +581,7 @@ const refreshCommand: SlashCommand = {
   kind: CommandKind.BUILT_IN,
   action: async (
     context: CommandContext,
-  ): Promise<SlashCommandActionReturn> => {
+  ): Promise<void | SlashCommandActionReturn> => {
     const { config } = context.services;
     if (!config) {
       return {
@@ -514,7 +619,7 @@ const refreshCommand: SlashCommand = {
     // Reload the slash commands to reflect the changes.
     context.ui.reloadCommands();
 
-    return getMcpStatus(context, false, false, false);
+    return listCommand.action!(context, '');
   },
 };
 
@@ -525,7 +630,10 @@ export const mcpCommand: SlashCommand = {
   kind: CommandKind.BUILT_IN,
   subCommands: [listCommand, authCommand, refreshCommand],
   // Default action when no subcommand is provided
-  action: async (context: CommandContext, args: string) =>
+  action: async (
+    context: CommandContext,
+    args: string,
+  ): Promise<void | SlashCommandActionReturn> =>
     // If no subcommand, run the list command
     listCommand.action!(context, args),
 };

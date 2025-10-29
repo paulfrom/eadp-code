@@ -4,13 +4,29 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+<<<<<<< HEAD
 import type { Config, IdeClient, File } from 'eadp-code-core';
+=======
+import {
+  type Config,
+  IdeClient,
+  type File,
+  logIdeConnection,
+  IdeConnectionEvent,
+  IdeConnectionType,
+} from '@qwen-code/qwen-code-core';
+>>>>>>> main
 import {
   QWEN_CODE_COMPANION_EXTENSION_NAME,
   getIdeInstaller,
   IDEConnectionStatus,
+<<<<<<< HEAD
   ideContext,
 } from 'eadp-code-core';
+=======
+  ideContextStore,
+} from '@qwen-code/qwen-code-core';
+>>>>>>> main
 import path from 'node:path';
 import type {
   CommandContext,
@@ -83,7 +99,7 @@ async function getIdeStatusMessageWithFiles(ideClient: IdeClient): Promise<{
   switch (connection.status) {
     case IDEConnectionStatus.Connected: {
       let content = `🟢 Connected to ${ideClient.getDetectedIdeDisplayName()}`;
-      const context = ideContext.getIdeContext();
+      const context = ideContextStore.get();
       const openFiles = context?.workspaceState?.openFiles;
       if (openFiles && openFiles.length > 0) {
         content += formatFileList(openFiles);
@@ -111,13 +127,24 @@ async function getIdeStatusMessageWithFiles(ideClient: IdeClient): Promise<{
   }
 }
 
-export const ideCommand = (config: Config | null): SlashCommand | null => {
-  if (!config) {
-    return null;
+async function setIdeModeAndSyncConnection(
+  config: Config,
+  value: boolean,
+): Promise<void> {
+  config.setIdeMode(value);
+  const ideClient = await IdeClient.getInstance();
+  if (value) {
+    await ideClient.connect();
+    logIdeConnection(config, new IdeConnectionEvent(IdeConnectionType.SESSION));
+  } else {
+    await ideClient.disconnect();
   }
-  const ideClient = config.getIdeClient();
+}
+
+export const ideCommand = async (): Promise<SlashCommand> => {
+  const ideClient = await IdeClient.getInstance();
   const currentIDE = ideClient.getCurrentIde();
-  if (!currentIDE || !ideClient.getDetectedIdeDisplayName()) {
+  if (!currentIDE) {
     return {
       name: 'ide',
       description: 'manage IDE integration',
@@ -194,7 +221,7 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
         );
         // Poll for up to 5 seconds for the extension to activate.
         for (let i = 0; i < 10; i++) {
-          await config.setIdeModeAndSyncConnection(true);
+          await setIdeModeAndSyncConnection(context.services.config!, true);
           if (
             ideClient.getConnectionStatus().status ===
             IDEConnectionStatus.Connected
@@ -236,7 +263,7 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
         'ide.enabled',
         true,
       );
-      await config.setIdeModeAndSyncConnection(true);
+      await setIdeModeAndSyncConnection(context.services.config!, true);
       const { messageType, content } = getIdeStatusMessage(ideClient);
       context.ui.addItem(
         {
@@ -258,7 +285,7 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
         'ide.enabled',
         false,
       );
-      await config.setIdeModeAndSyncConnection(false);
+      await setIdeModeAndSyncConnection(context.services.config!, false);
       const { messageType, content } = getIdeStatusMessage(ideClient);
       context.ui.addItem(
         {

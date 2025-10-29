@@ -15,33 +15,31 @@ import {
   DiscoveredMCPTool,
 } from 'eadp-code-core';
 
-import type { MessageActionReturn } from './types.js';
 import type { CallableTool } from '@google/genai';
 import { Type } from '@google/genai';
+import { MessageType } from '../types.js';
 
 vi.mock('eadp-code-core', async (importOriginal) => {
   const actual =
+<<<<<<< HEAD
     await importOriginal<typeof import('eadp-code-core')>();
+=======
+    await importOriginal<typeof import('@qwen-code/qwen-code-core')>();
+  const mockAuthenticate = vi.fn();
+>>>>>>> main
   return {
     ...actual,
     getMCPServerStatus: vi.fn(),
     getMCPDiscoveryState: vi.fn(),
-    MCPOAuthProvider: {
-      authenticate: vi.fn(),
-    },
-    MCPOAuthTokenStorage: {
+    MCPOAuthProvider: vi.fn(() => ({
+      authenticate: mockAuthenticate,
+    })),
+    MCPOAuthTokenStorage: vi.fn(() => ({
       getToken: vi.fn(),
       isTokenExpired: vi.fn(),
-    },
+    })),
   };
 });
-
-// Helper function to check if result is a message action
-const isMessageAction = (result: unknown): result is MessageActionReturn =>
-  result !== null &&
-  typeof result === 'object' &&
-  'type' in result &&
-  result.type === 'message';
 
 // Helper function to create a mock DiscoveredMCPTool
 const createMockMCPTool = (
@@ -58,7 +56,6 @@ const createMockMCPTool = (
     name,
     description || `Description for ${name}`,
     { type: Type.OBJECT, properties: {} },
-    name, // serverToolName same as name for simplicity
   );
 
 describe('mcpCommand', () => {
@@ -68,6 +65,7 @@ describe('mcpCommand', () => {
     getMcpServers: ReturnType<typeof vi.fn>;
     getBlockedMcpServers: ReturnType<typeof vi.fn>;
     getPromptRegistry: ReturnType<typeof vi.fn>;
+    getGeminiClient: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
@@ -93,6 +91,7 @@ describe('mcpCommand', () => {
         getAllPrompts: vi.fn().mockReturnValue([]),
         getPromptsByServer: vi.fn().mockReturnValue([]),
       }),
+      getGeminiClient: vi.fn(),
     };
 
     mockContext = createMockCommandContext({
@@ -128,26 +127,6 @@ describe('mcpCommand', () => {
         type: 'message',
         messageType: 'error',
         content: 'Could not retrieve tool registry.',
-      });
-    });
-  });
-
-  describe('no MCP servers configured', () => {
-    beforeEach(() => {
-      mockConfig.getToolRegistry = vi.fn().mockReturnValue({
-        getAllTools: vi.fn().mockReturnValue([]),
-      });
-      mockConfig.getMcpServers = vi.fn().mockReturnValue({});
-    });
-
-    it('should display a message with a URL when no MCP servers are configured', async () => {
-      const result = await mcpCommand.action!(mockContext, '');
-
-      expect(result).toEqual({
-        type: 'message',
-        messageType: 'info',
-        content:
-          'No MCP servers configured. Please view MCP documentation in your browser: https://qwenlm.github.io/qwen-code-docs/en/tools/mcp-server/#how-to-set-up-your-mcp-server or use the cli /docs command',
       });
     });
   });
@@ -189,101 +168,38 @@ describe('mcpCommand', () => {
         getAllTools: vi.fn().mockReturnValue(allTools),
       });
 
-      const result = await mcpCommand.action!(mockContext, '');
+      await mcpCommand.action!(mockContext, '');
 
-      expect(result).toEqual({
-        type: 'message',
-        messageType: 'info',
-        content: expect.stringContaining('Configured MCP servers:'),
-      });
-
-      expect(isMessageAction(result)).toBe(true);
-      if (isMessageAction(result)) {
-        const message = result.content;
-        // Server 1 - Connected
-        expect(message).toContain(
-          '🟢 \u001b[1mserver1\u001b[0m - Ready (2 tools)',
-        );
-        expect(message).toContain('server1_tool1');
-        expect(message).toContain('server1_tool2');
-
-        // Server 2 - Connected
-        expect(message).toContain(
-          '🟢 \u001b[1mserver2\u001b[0m - Ready (1 tool)',
-        );
-        expect(message).toContain('server2_tool1');
-
-        // Server 3 - Disconnected but with cached tools, so shows as Ready
-        expect(message).toContain(
-          '🟢 \u001b[1mserver3\u001b[0m - Ready (1 tool)',
-        );
-        expect(message).toContain('server3_tool1');
-
-        // Check that helpful tips are displayed when no arguments are provided
-        expect(message).toContain('💡 Tips:');
-        expect(message).toContain('/mcp desc');
-        expect(message).toContain('/mcp schema');
-        expect(message).toContain('/mcp nodesc');
-        expect(message).toContain('Ctrl+T');
-      }
+      expect(mockContext.ui.addItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: MessageType.MCP_STATUS,
+          tools: allTools.map((tool) => ({
+            serverName: tool.serverName,
+            name: tool.name,
+            description: tool.description,
+            schema: tool.schema,
+          })),
+          showTips: true,
+        }),
+        expect.any(Number),
+      );
     });
 
     it('should display tool descriptions when desc argument is used', async () => {
-      const mockMcpServers = {
-        server1: {
-          command: 'cmd1',
-          description: 'This is a server description',
-        },
-      };
+      await mcpCommand.action!(mockContext, 'desc');
 
-      mockConfig.getMcpServers = vi.fn().mockReturnValue(mockMcpServers);
-
-      // Mock tools with descriptions using actual DiscoveredMCPTool instances
-      const mockServerTools = [
-        createMockMCPTool('tool1', 'server1', 'This is tool 1 description'),
-        createMockMCPTool('tool2', 'server1', 'This is tool 2 description'),
-      ];
-
-      mockConfig.getToolRegistry = vi.fn().mockReturnValue({
-        getAllTools: vi.fn().mockReturnValue(mockServerTools),
-      });
-
-      const result = await mcpCommand.action!(mockContext, 'desc');
-
-      expect(result).toEqual({
-        type: 'message',
-        messageType: 'info',
-        content: expect.stringContaining('Configured MCP servers:'),
-      });
-
-      expect(isMessageAction(result)).toBe(true);
-      if (isMessageAction(result)) {
-        const message = result.content;
-
-        // Check that server description is included
-        expect(message).toContain(
-          '\u001b[1mserver1\u001b[0m - Ready (2 tools)',
-        );
-        expect(message).toContain(
-          '\u001b[32mThis is a server description\u001b[0m',
-        );
-
-        // Check that tool descriptions are included
-        expect(message).toContain('\u001b[36mtool1\u001b[0m');
-        expect(message).toContain(
-          '\u001b[32mThis is tool 1 description\u001b[0m',
-        );
-        expect(message).toContain('\u001b[36mtool2\u001b[0m');
-        expect(message).toContain(
-          '\u001b[32mThis is tool 2 description\u001b[0m',
-        );
-
-        // Check that tips are NOT displayed when arguments are provided
-        expect(message).not.toContain('💡 Tips:');
-      }
+      expect(mockContext.ui.addItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: MessageType.MCP_STATUS,
+          showDescriptions: true,
+          showTips: false,
+        }),
+        expect.any(Number),
+      );
     });
 
     it('should not display descriptions when nodesc argument is used', async () => {
+<<<<<<< HEAD
       const mockMcpServers = {
         server1: {
           command: 'cmd1',
@@ -1008,51 +924,18 @@ describe('mcpCommand', () => {
           type: 'info',
           text: 'Restarting MCP servers...',
         },
+=======
+      await mcpCommand.action!(mockContext, 'nodesc');
+
+      expect(mockContext.ui.addItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: MessageType.MCP_STATUS,
+          showDescriptions: false,
+          showTips: false,
+        }),
+>>>>>>> main
         expect.any(Number),
       );
-      expect(mockToolRegistry.restartMcpServers).toHaveBeenCalled();
-      expect(mockGeminiClient.setTools).toHaveBeenCalled();
-      expect(context.ui.reloadCommands).toHaveBeenCalledTimes(1);
-
-      expect(isMessageAction(result)).toBe(true);
-      if (isMessageAction(result)) {
-        expect(result.messageType).toBe('info');
-        expect(result.content).toContain('Configured MCP servers:');
-      }
-    });
-
-    it('should show an error if config is not available', async () => {
-      const contextWithoutConfig = createMockCommandContext({
-        services: {
-          config: null,
-        },
-      });
-
-      const refreshCommand = mcpCommand.subCommands?.find(
-        (cmd) => cmd.name === 'refresh',
-      );
-      const result = await refreshCommand!.action!(contextWithoutConfig, '');
-
-      expect(result).toEqual({
-        type: 'message',
-        messageType: 'error',
-        content: 'Config not loaded.',
-      });
-    });
-
-    it('should show an error if tool registry is not available', async () => {
-      mockConfig.getToolRegistry = vi.fn().mockReturnValue(undefined);
-
-      const refreshCommand = mcpCommand.subCommands?.find(
-        (cmd) => cmd.name === 'refresh',
-      );
-      const result = await refreshCommand!.action!(mockContext, '');
-
-      expect(result).toEqual({
-        type: 'message',
-        messageType: 'error',
-        content: 'Could not retrieve tool registry.',
-      });
     });
   });
 });

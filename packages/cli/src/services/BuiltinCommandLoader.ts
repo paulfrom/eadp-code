@@ -28,7 +28,7 @@ import { apiRefreshCommand } from '../ui/commands/apiRefreshCommand.js';
 import { mcpCommand } from '../ui/commands/mcpCommand.js';
 import { memoryCommand } from '../ui/commands/memoryCommand.js';
 import { modelCommand } from '../ui/commands/modelCommand.js';
-import { privacyCommand } from '../ui/commands/privacyCommand.js';
+import { permissionsCommand } from '../ui/commands/permissionsCommand.js';
 import { quitCommand, quitConfirmCommand } from '../ui/commands/quitCommand.js';
 import { restoreCommand } from '../ui/commands/restoreCommand.js';
 import { settingsCommand } from '../ui/commands/settingsCommand.js';
@@ -71,13 +71,13 @@ export class BuiltinCommandLoader implements ICommandLoader {
       editorCommand,
       extensionsCommand,
       helpCommand,
-      ideCommand(this.config),
+      await ideCommand(),
       initCommand,
       apiRefreshCommand,
       mcpCommand,
       memoryCommand,
       modelCommand,
-      privacyCommand,
+      ...(this.config?.getFolderTrust() ? [permissionsCommand] : []),
       quitCommand,
       quitConfirmCommand,
       restoreCommand(this.config),

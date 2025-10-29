@@ -4,11 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+<<<<<<< HEAD
 import { AuthType } from 'eadp-code-core';
 import { loadEnvironment } from './settings.js';
+=======
+import { AuthType } from '@qwen-code/qwen-code-core';
+import { loadEnvironment, loadSettings } from './settings.js';
+>>>>>>> main
 
-export const validateAuthMethod = (authMethod: string): string | null => {
-  loadEnvironment();
+export function validateAuthMethod(authMethod: string): string | null {
+  loadEnvironment(loadSettings().merged);
   if (
     authMethod === AuthType.LOGIN_WITH_GOOGLE ||
     authMethod === AuthType.CLOUD_SHELL
@@ -53,7 +58,7 @@ export const validateAuthMethod = (authMethod: string): string | null => {
   }
 
   return 'Invalid auth method selected.';
-};
+}
 
 export const setOpenAIApiKey = (apiKey: string): void => {
   process.env['OPENAI_API_KEY'] = apiKey;
