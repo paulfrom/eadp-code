@@ -7,13 +7,8 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { listMcpServers } from './list.js';
 import { loadSettings } from '../../config/settings.js';
-<<<<<<< HEAD
-import { loadExtensions } from '../../config/extension.js';
-import { createTransport } from 'eadp-code-core';
-=======
 import { ExtensionStorage, loadExtensions } from '../../config/extension.js';
 import { createTransport } from 'eadp-code-core';
->>>>>>> main
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 
 vi.mock('../../config/settings.js', () => ({
