@@ -1128,6 +1128,33 @@ const SETTINGS_SCHEMA = {
       },
     },
   },
+  swaggerUrl: {
+    type: 'string',
+    label: 'Swagger URL',
+    category: 'Advanced',
+    requiresRestart: false,
+    default: '',
+    description: 'URL for the Swagger API documentation.',
+    showInDialog: false,
+  },
+  swaggerPassword: {
+    type: 'string',
+    label: 'Swagger Password',
+    category: 'Advanced',
+    requiresRestart: false,
+    default: '',
+    description: 'Password for accessing Swagger API documentation.',
+    showInDialog: false,
+  },
+  swaggerUserName: {
+    type: 'string',
+    label: 'Swagger Username',
+    category: 'Advanced',
+    requiresRestart: false,
+    default: '',
+    description: 'Username for accessing Swagger API documentation.',
+    showInDialog: false,
+  },
 } as const satisfies SettingsSchema;
 
 export type SettingsSchemaType = typeof SETTINGS_SCHEMA;

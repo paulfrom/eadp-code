@@ -13,6 +13,7 @@ import { ApprovalMode } from 'eadp-code-core';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { CommandKind } from './types.js';
+import { loadSettings } from '../../config/settings.js';
 
 interface SwaggerApiToolParams {
   url: string;
@@ -42,7 +43,15 @@ export const apiRefreshCommand: SlashCommand = {
     }
 
     try {
-      const { url, userName, password } = context.services.config.getSwaggerParameters();
+      // Reload project-level settings each time the command is called
+      const projectDir = context.services.config.getProjectRoot?.() || process.cwd();
+      const loadedSettings = loadSettings(projectDir);
+      const currentSettings = loadedSettings.merged;
+      
+      // Get swagger parameters from settings
+      const url = currentSettings.swaggerUrl || undefined;
+      const userName = currentSettings.swaggerUserName || undefined;
+      const password = currentSettings.swaggerPassword || undefined;
 
       if (!url) {
         return {
