@@ -17,12 +17,8 @@ import {
   SlashCommandStatus,
   ToolConfirmationOutcome,
   Storage,
-<<<<<<< HEAD
-} from 'eadp-code-core';
-=======
   IdeClient,
-} from '@qwen-code/qwen-code-core';
->>>>>>> main
+} from 'eadp-code-core';
 import { useSessionStats } from '../contexts/SessionContext.js';
 import { formatDuration } from '../utils/formatters.js';
 import type {

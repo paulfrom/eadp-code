@@ -12,7 +12,7 @@ import {
   FatalTurnLimitedError,
   FatalToolExecutionError,
   FatalCancellationError,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {

@@ -4,30 +4,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-<<<<<<< HEAD
 import type { Config, ToolCallRequestInfo } from 'eadp-code-core';
-=======
-import type { Config, ToolCallRequestInfo } from '@qwen-code/qwen-code-core';
 import { isSlashCommand } from './ui/utils/commandUtils.js';
 import type { LoadedSettings } from './config/settings.js';
->>>>>>> main
 import {
   executeToolCall,
   shutdownTelemetry,
   isTelemetrySdkInitialized,
   GeminiEventType,
   FatalInputError,
-<<<<<<< HEAD
-  FatalTurnLimitedError,
-} from 'eadp-code-core';
-=======
   promptIdContext,
   OutputFormat,
   JsonFormatter,
   uiTelemetryService,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 
->>>>>>> main
 import type { Content, Part } from '@google/genai';
 
 import { handleSlashCommand } from './nonInteractiveCliCommands.js';

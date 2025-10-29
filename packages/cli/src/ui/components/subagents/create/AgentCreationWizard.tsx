@@ -16,12 +16,7 @@ import { CreationSummary } from './CreationSummary.js';
 import { type WizardStepProps } from '../types.js';
 import { WIZARD_STEPS } from '../constants.js';
 import { getStepKind } from '../utils.js';
-<<<<<<< HEAD
 import type { Config } from 'eadp-code-core';
-import { Colors } from '../../../colors.js';
-=======
-import type { Config } from '@qwen-code/qwen-code-core';
->>>>>>> main
 import { theme } from '../../../semantic-colors.js';
 import { TextEntryStep } from './TextEntryStep.js';
 import { useKeypress } from '../../../hooks/useKeypress.js';

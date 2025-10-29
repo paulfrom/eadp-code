@@ -4,9 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-<<<<<<< HEAD
-import type { Config, IdeClient, File } from 'eadp-code-core';
-=======
 import {
   type Config,
   IdeClient,
@@ -14,19 +11,13 @@ import {
   logIdeConnection,
   IdeConnectionEvent,
   IdeConnectionType,
-} from '@qwen-code/qwen-code-core';
->>>>>>> main
+} from 'eadp-code-core';
 import {
   QWEN_CODE_COMPANION_EXTENSION_NAME,
   getIdeInstaller,
   IDEConnectionStatus,
-<<<<<<< HEAD
-  ideContext,
-} from 'eadp-code-core';
-=======
   ideContextStore,
-} from '@qwen-code/qwen-code-core';
->>>>>>> main
+} from 'eadp-code-core';
 import path from 'node:path';
 import type {
   CommandContext,

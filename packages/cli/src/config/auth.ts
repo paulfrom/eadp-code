@@ -4,13 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-<<<<<<< HEAD
 import { AuthType } from 'eadp-code-core';
-import { loadEnvironment } from './settings.js';
-=======
-import { AuthType } from '@qwen-code/qwen-code-core';
 import { loadEnvironment, loadSettings } from './settings.js';
->>>>>>> main
 
 export function validateAuthMethod(authMethod: string): string | null {
   loadEnvironment(loadSettings().merged);

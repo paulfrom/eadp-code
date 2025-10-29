@@ -9,12 +9,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import pathMod from 'node:path';
 import { useState, useCallback, useEffect, useMemo, useReducer } from 'react';
-<<<<<<< HEAD
-import stringWidth from 'string-width';
 import { unescapePath } from 'eadp-code-core';
-=======
-import { unescapePath } from '@qwen-code/qwen-code-core';
->>>>>>> main
 import {
   toCodePoints,
   cpLen,

@@ -5,13 +5,8 @@
  */
 
 import { Text } from 'ink';
-<<<<<<< HEAD
-import { Colors } from '../colors.js';
-import { tokenLimit } from 'eadp-code-core';
-=======
 import { theme } from '../semantic-colors.js';
-import { tokenLimit } from '@qwen-code/qwen-code-core';
->>>>>>> main
+import { tokenLimit } from 'eadp-code-core';
 
 export const ContextUsageDisplay = ({
   promptTokenCount,

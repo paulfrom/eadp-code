@@ -6,13 +6,8 @@
 
 import type React from 'react';
 import { Box, Text } from 'ink';
-<<<<<<< HEAD
-import { Colors } from '../colors.js';
-import { type Config } from 'eadp-code-core';
-=======
 import { theme } from '../semantic-colors.js';
-import { type Config } from '@qwen-code/qwen-code-core';
->>>>>>> main
+import { type Config } from 'eadp-code-core';
 
 interface TipsProps {
   config: Config;
@@ -32,15 +27,11 @@ export const Tips: React.FC<TipsProps> = ({ config }) => {
       {geminiMdFileCount === 0 && (
         <Text color={theme.text.primary}>
           3. Create{' '}
-<<<<<<< HEAD
-          <Text bold color={Colors.AccentPurple}>
-            EADP.md
-=======
           <Text bold color={theme.text.accent}>
-            QWEN.md
->>>>>>> main
+            EADP.md
           </Text>{' '}
-          files to customize your interactions with EADP Code. or use /init to init
+          files to customize your interactions with EADP Code. or use /init to
+          init
         </Text>
       )}
       <Text color={theme.text.primary}>

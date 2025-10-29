@@ -6,17 +6,12 @@
 
 import type { ReactNode } from 'react';
 import type { Content, PartListUnion } from '@google/genai';
-<<<<<<< HEAD
-import type { HistoryItemWithoutId, HistoryItem } from '../types.js';
 import type { Config, GitService, Logger } from 'eadp-code-core';
-=======
-import type { Config, GitService, Logger } from '@qwen-code/qwen-code-core';
 import type {
   HistoryItemWithoutId,
   HistoryItem,
   ConfirmationRequest,
 } from '../types.js';
->>>>>>> main
 import type { LoadedSettings } from '../../config/settings.js';
 import type { UseHistoryManagerReturn } from '../hooks/useHistoryManager.js';
 import type { SessionStatsState } from '../contexts/SessionContext.js';

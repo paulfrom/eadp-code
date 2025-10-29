@@ -11,15 +11,9 @@ import type { IndividualToolCallDisplay } from '../../types.js';
 import { ToolCallStatus } from '../../types.js';
 import { ToolMessage } from './ToolMessage.js';
 import { ToolConfirmationMessage } from './ToolConfirmationMessage.js';
-<<<<<<< HEAD
-import { Colors } from '../../colors.js';
-import type { Config } from 'eadp-code-core';
-import { SHELL_COMMAND_NAME } from '../../constants.js';
-=======
 import { theme } from '../../semantic-colors.js';
 import { SHELL_COMMAND_NAME, SHELL_NAME } from '../../constants.js';
 import { useConfig } from '../../contexts/ConfigContext.js';
->>>>>>> main
 
 interface ToolGroupMessageProps {
   groupId: number;

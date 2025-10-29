@@ -40,7 +40,7 @@ import {
   getErrorMessage,
   getAllGeminiMdFilenames,
   ShellExecutionService,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import { validateAuthMethod } from '../config/auth.js';
 import { loadHierarchicalGeminiMemory } from '../config/config.js';
 import process from 'node:process';

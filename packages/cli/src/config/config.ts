@@ -7,14 +7,9 @@
 import type {
   FileFilteringOptions,
   MCPServerConfig,
-<<<<<<< HEAD
-  TelemetryTarget,
-} from 'eadp-code-core';
-=======
   OutputFormat,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import { extensionsCommand } from '../commands/extensions.js';
->>>>>>> main
 import {
   ApprovalMode,
   Config,
@@ -28,21 +23,9 @@ import {
   setGeminiMdFilename as setServerGeminiMdFilename,
   ShellTool,
   WriteFileTool,
-<<<<<<< HEAD
-} from 'eadp-code-core';
-import * as fs from 'node:fs';
-import { homedir } from 'node:os';
-import * as path from 'node:path';
-import process from 'node:process';
-import { hideBin } from 'yargs/helpers';
-import yargs from 'yargs/yargs';
-import { extensionsCommand } from '../commands/extensions.js';
-import { mcpCommand } from '../commands/mcp.js';
-=======
   resolveTelemetrySettings,
   FatalConfigError,
-} from '@qwen-code/qwen-code-core';
->>>>>>> main
+} from 'eadp-code-core';
 import type { Settings } from './settings.js';
 import yargs, { type Argv } from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -141,15 +124,9 @@ export interface CliArgs {
 }
 
 export async function parseArguments(settings: Settings): Promise<CliArgs> {
-<<<<<<< HEAD
-  const yargsInstance = yargs(hideBin(process.argv))
-    // Set locale to English for consistent output, especially in tests
-    .locale('zh')
-=======
   const rawArgv = hideBin(process.argv);
   const yargsInstance = yargs(rawArgv)
     .locale('en')
->>>>>>> main
     .scriptName('qwen')
     .usage(
       'Usage: qwen [options] [command]\n\nQwen Code - Launch an interactive CLI, use -p/--prompt for non-interactive mode',
@@ -786,11 +763,9 @@ export async function loadCliConfig(
     enablePromptCompletion: settings.general?.enablePromptCompletion ?? false,
     skipLoopDetection: settings.model?.skipLoopDetection ?? false,
     vlmSwitchMode,
-<<<<<<< HEAD
     swaggerUrl: settings.swaggerUrl || '',
     swaggerUserName: settings.swaggerUserName || '',
     swaggerPassword: settings.swaggerPassword || '',
-=======
     truncateToolOutputThreshold: settings.tools?.truncateToolOutputThreshold,
     truncateToolOutputLines: settings.tools?.truncateToolOutputLines,
     enableToolOutputTruncation: settings.tools?.enableToolOutputTruncation,
@@ -799,7 +774,6 @@ export async function loadCliConfig(
     output: {
       format: (argv.outputFormat ?? settings.output?.format) as OutputFormat,
     },
->>>>>>> main
   });
 }
 

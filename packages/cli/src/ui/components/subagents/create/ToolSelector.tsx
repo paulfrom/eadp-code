@@ -8,13 +8,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { Box, Text } from 'ink';
 import { RadioButtonSelect } from '../../shared/RadioButtonSelect.js';
 import type { ToolCategory } from '../types.js';
-<<<<<<< HEAD
 import { Kind, type Config } from 'eadp-code-core';
-import { Colors } from '../../../colors.js';
-=======
-import { Kind, type Config } from '@qwen-code/qwen-code-core';
 import { theme } from '../../../semantic-colors.js';
->>>>>>> main
 
 interface ToolOption {
   label: string;

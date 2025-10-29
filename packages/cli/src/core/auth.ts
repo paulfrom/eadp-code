@@ -4,11 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  type AuthType,
-  type Config,
-  getErrorMessage,
-} from '@qwen-code/qwen-code-core';
+import { type AuthType, type Config, getErrorMessage } from 'eadp-code-core';
 
 /**
  * Handles the initial authentication flow.

@@ -24,14 +24,10 @@ import { StatsDisplay } from './StatsDisplay.js';
 import { ModelStatsDisplay } from './ModelStatsDisplay.js';
 import { ToolStatsDisplay } from './ToolStatsDisplay.js';
 import { SessionSummaryDisplay } from './SessionSummaryDisplay.js';
-<<<<<<< HEAD
-import type { Config } from 'eadp-code-core';
-=======
->>>>>>> main
 import { Help } from './Help.js';
 import type { SlashCommand } from '../commands/types.js';
 import { ExtensionsList } from './views/ExtensionsList.js';
-import { getMCPServerStatus } from '@qwen-code/qwen-code-core';
+import { getMCPServerStatus } from 'eadp-code-core';
 import { ToolsList } from './views/ToolsList.js';
 import { McpStatus } from './views/McpStatus.js';
 

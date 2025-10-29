@@ -4,10 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-<<<<<<< HEAD
-import { AuthType } from 'eadp-code-core';
-=======
->>>>>>> main
 import type {
   SlashCommand,
   CommandContext,

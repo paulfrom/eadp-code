@@ -367,22 +367,6 @@ function mergeSettings(
 ): Settings {
   const safeWorkspace = isTrusted ? workspace : ({} as Settings);
 
-<<<<<<< HEAD
-  // folderTrust is not supported at workspace level.
-  const { security, ...restOfWorkspace } = safeWorkspace;
-  const safeWorkspaceWithoutFolderTrust = security
-    ? {
-      ...restOfWorkspace,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      security: (({ folderTrust, ...rest }) => rest)(security),
-    }
-    : {
-      ...restOfWorkspace,
-      security: {},
-    };
-
-=======
->>>>>>> main
   // Settings are merged with the following precedence (last one wins for
   // single values):
   // 1. System Defaults
@@ -638,14 +622,7 @@ export function loadSettings(
             settingsObject = migratedSettings;
           }
         }
-<<<<<<< HEAD
-        return settingsObject as Settings;
-      } else {
-        // If the settings file doesn't exist, create a default one
-        return createDefaultSettingsFile(filePath, scope);
-=======
         return { settings: settingsObject as Settings, rawJson: content };
->>>>>>> main
       }
     } catch (error: unknown) {
       settingsErrors.push({
@@ -658,10 +635,7 @@ export function loadSettings(
       }
       return {};
     }
-<<<<<<< HEAD
-=======
     return { settings: {} };
->>>>>>> main
   };
 
   const systemResult = loadAndMigrate(systemSettingsPath, SettingScope.System);
@@ -910,7 +884,10 @@ export function saveSettings(settingsFile: SettingsFile): void {
 /**
  * Creates a default settings file at the specified path if it doesn't exist
  */
-function createDefaultSettingsFile(filePath: string, scope: SettingScope): Settings {
+function createDefaultSettingsFile(
+  filePath: string,
+  scope: SettingScope,
+): Settings {
   if (scope !== SettingScope.Workspace) {
     return {};
   }
@@ -926,7 +903,9 @@ function createDefaultSettingsFile(filePath: string, scope: SettingScope): Setti
   };
 
   saveSettings(settingsFile);
-  console.log(`Created default ${scope.toLowerCase()} settings file at: ${filePath}`);
+  console.log(
+    `Created default ${scope.toLowerCase()} settings file at: ${filePath}`,
+  );
 
   return defaultSettings;
 }

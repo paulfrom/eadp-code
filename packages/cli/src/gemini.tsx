@@ -4,9 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-<<<<<<< HEAD
-import type { Config } from 'eadp-code-core';
-=======
 import React from 'react';
 import { render } from 'ink';
 import { AppContainer } from './ui/AppContainer.js';
@@ -37,29 +34,12 @@ import {
   runExitCleanup,
 } from './utils/cleanup.js';
 import { getCliVersion } from './utils/version.js';
-import type { Config } from '@qwen-code/qwen-code-core';
->>>>>>> main
-import {
-  AuthType,
-  getOauthClient,
-  logUserPrompt,
-<<<<<<< HEAD
-  sessionId,
-} from 'eadp-code-core';
-import { render } from 'ink';
-import { spawn } from 'node:child_process';
-import dns from 'node:dns';
-import os from 'node:os';
-import { basename } from 'node:path';
-import v8 from 'node:v8';
-import React from 'react';
-=======
-} from '@qwen-code/qwen-code-core';
+import type { Config } from 'eadp-code-core';
+import { AuthType, getOauthClient, logUserPrompt } from 'eadp-code-core';
 import {
   initializeApp,
   type InitializationResult,
 } from './core/initializer.js';
->>>>>>> main
 import { validateAuthMethod } from './config/auth.js';
 import { setMaxSizedBoxDebugging } from './ui/components/shared/MaxSizedBox.js';
 import { SettingsContext } from './ui/contexts/SettingsContext.js';
@@ -482,15 +462,7 @@ export async function main() {
 
 function setWindowTitle(title: string, settings: LoadedSettings) {
   if (!settings.merged.ui?.hideWindowTitle) {
-<<<<<<< HEAD
-    const windowTitle = (process.env['CLI_TITLE'] || `EADP - ${title}`).replace(
-      // eslint-disable-next-line no-control-regex
-      /[\x00-\x1F\x7F]/g,
-      '',
-    );
-=======
     const windowTitle = computeWindowTitle(title);
->>>>>>> main
     process.stdout.write(`\x1b]2;${windowTitle}\x07`);
 
     process.on('exit', () => {

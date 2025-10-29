@@ -14,17 +14,12 @@ import {
   useEffect,
 } from 'react';
 
-<<<<<<< HEAD
-import type { SessionMetrics, ModelMetrics } from 'eadp-code-core';
-import { uiTelemetryService, sessionId } from 'eadp-code-core';
-=======
 import type {
   SessionMetrics,
   ModelMetrics,
   ToolCallStats,
-} from '@qwen-code/qwen-code-core';
-import { uiTelemetryService, sessionId } from '@qwen-code/qwen-code-core';
->>>>>>> main
+} from 'eadp-code-core';
+import { uiTelemetryService, sessionId } from 'eadp-code-core';
 
 export enum ToolCallDecision {
   ACCEPT = 'accept',

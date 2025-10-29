@@ -7,12 +7,8 @@
 import type {
   MCPServerConfig,
   GeminiCLIExtension,
-<<<<<<< HEAD
-} from 'eadp-code-core';
-import { Storage } from 'eadp-code-core';
-=======
   ExtensionInstallMetadata,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import {
   QWEN_DIR,
   Storage,
@@ -25,8 +21,7 @@ import {
   logExtensionInstallEvent,
   logExtensionUninstall,
   logExtensionDisable,
-} from '@qwen-code/qwen-code-core';
->>>>>>> main
+} from 'eadp-code-core';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';

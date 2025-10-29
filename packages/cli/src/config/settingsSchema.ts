@@ -10,15 +10,11 @@ import type {
   TelemetrySettings,
   AuthType,
   ChatCompressionSettings,
-<<<<<<< HEAD
 } from 'eadp-code-core';
-=======
-} from '@qwen-code/qwen-code-core';
 import {
   DEFAULT_TRUNCATE_TOOL_OUTPUT_LINES,
   DEFAULT_TRUNCATE_TOOL_OUTPUT_THRESHOLD,
-} from '@qwen-code/qwen-code-core';
->>>>>>> main
+} from 'eadp-code-core';
 import type { CustomTheme } from '../ui/themes/theme.js';
 
 export type SettingsType =
@@ -1132,154 +1128,6 @@ const SETTINGS_SCHEMA = {
       },
     },
   },
-<<<<<<< HEAD
-  contentGenerator: {
-    type: 'object',
-    label: 'Content Generator',
-    category: 'General',
-    requiresRestart: false,
-    default: undefined as Record<string, unknown> | undefined,
-    description: 'Content generator settings.',
-    showInDialog: false,
-    properties: {
-      timeout: {
-        type: 'number',
-        label: 'Timeout',
-        category: 'Content Generator',
-        requiresRestart: false,
-        default: undefined as number | undefined,
-        description: 'Request timeout in milliseconds.',
-        parentKey: 'contentGenerator',
-        childKey: 'timeout',
-        showInDialog: true,
-      },
-      maxRetries: {
-        type: 'number',
-        label: 'Max Retries',
-        category: 'Content Generator',
-        requiresRestart: false,
-        default: undefined as number | undefined,
-        description: 'Maximum number of retries for failed requests.',
-        parentKey: 'contentGenerator',
-        childKey: 'maxRetries',
-        showInDialog: true,
-      },
-      disableCacheControl: {
-        type: 'boolean',
-        label: 'Disable Cache Control',
-        category: 'Content Generator',
-        requiresRestart: false,
-        default: false,
-        description: 'Disable cache control for DashScope providers.',
-        parentKey: 'contentGenerator',
-        childKey: 'disableCacheControl',
-        showInDialog: true,
-      },
-    },
-  },
-  enableOpenAILogging: {
-    type: 'boolean',
-    label: 'Enable OpenAI Logging',
-    category: 'General',
-    requiresRestart: false,
-    default: false,
-    description: 'Enable OpenAI logging.',
-    showInDialog: true,
-  },
-  sessionTokenLimit: {
-    type: 'number',
-    label: 'Session Token Limit',
-    category: 'General',
-    requiresRestart: false,
-    default: undefined as number | undefined,
-    description: 'The maximum number of tokens allowed in a session.',
-    showInDialog: false,
-  },
-  systemPromptMappings: {
-    type: 'object',
-    label: 'System Prompt Mappings',
-    category: 'General',
-    requiresRestart: false,
-    default: undefined as Record<string, string> | undefined,
-    description: 'Mappings of system prompts to model names.',
-    showInDialog: false,
-  },
-  tavilyApiKey: {
-    type: 'string',
-    label: 'Tavily API Key',
-    category: 'General',
-    requiresRestart: false,
-    default: undefined as string | undefined,
-    description: 'The API key for the Tavily API.',
-    showInDialog: false,
-  },
-  swaggerUrl: {
-    type: 'string',
-    label: 'Swagger URL',
-    category: 'General',
-    requiresRestart: false,
-    default: undefined as string | undefined,
-    description: 'The URL for the Swagger API documentation.',
-    showInDialog: false,
-  },
-  swaggerPassword: {
-    type: 'string',
-    label: 'Swagger Password',
-    category: 'General',
-    requiresRestart: false,
-    default: undefined as string | undefined,
-    description: 'The password for the Swagger API.',
-    showInDialog: false,
-  },
-  swaggerUserName: {
-    type: 'string',
-    label: 'Swagger User Name',
-    category: 'General',
-    requiresRestart: false,
-    default: undefined as string | undefined,
-    description: 'The user name for the Swagger API.',
-    showInDialog: false,
-  },
-  skipNextSpeakerCheck: {
-    type: 'boolean',
-    label: 'Skip Next Speaker Check',
-    category: 'General',
-    requiresRestart: false,
-    default: false,
-    description: 'Skip the next speaker check.',
-    showInDialog: true,
-  },
-  skipLoopDetection: {
-    type: 'boolean',
-    label: 'Skip Loop Detection',
-    category: 'General',
-    requiresRestart: false,
-    default: false,
-    description: 'Disable all loop detection checks (streaming and LLM).',
-    showInDialog: true,
-  },
-  approvalMode: {
-    type: 'string',
-    label: 'Default Approval Mode',
-    category: 'General',
-    requiresRestart: false,
-    default: 'default',
-    description:
-      'Default approval mode for tool usage. Valid values: plan, default, auto-edit, yolo.',
-    showInDialog: true,
-  },
-  enableWelcomeBack: {
-    type: 'boolean',
-    label: 'Enable Welcome Back',
-    category: 'UI',
-    requiresRestart: false,
-    default: true,
-    description:
-      'Show welcome back dialog when returning to a project with conversation history.',
-    showInDialog: true,
-  },
-} as const;
-=======
 } as const satisfies SettingsSchema;
 
 export type SettingsSchemaType = typeof SETTINGS_SCHEMA;
@@ -1287,7 +1135,6 @@ export type SettingsSchemaType = typeof SETTINGS_SCHEMA;
 export function getSettingsSchema(): SettingsSchemaType {
   return SETTINGS_SCHEMA;
 }
->>>>>>> main
 
 type InferSettings<T extends SettingsSchema> = {
   -readonly [K in keyof T]?: T[K] extends { properties: SettingsSchema }

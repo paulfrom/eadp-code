@@ -6,13 +6,8 @@
 
 import type React from 'react';
 import { Box, Text } from 'ink';
-<<<<<<< HEAD
-import { Colors } from '../colors.js';
-import { ApprovalMode } from 'eadp-code-core';
-=======
 import { theme } from '../semantic-colors.js';
-import { ApprovalMode } from '@qwen-code/qwen-code-core';
->>>>>>> main
+import { ApprovalMode } from 'eadp-code-core';
 
 interface AutoAcceptIndicatorProps {
   approvalMode: ApprovalMode;

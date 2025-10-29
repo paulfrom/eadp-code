@@ -7,16 +7,12 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { homedir } from 'node:os';
-<<<<<<< HEAD
-import { getErrorMessage, isWithinRoot } from 'eadp-code-core';
-=======
 import {
   FatalConfigError,
   getErrorMessage,
   isWithinRoot,
   ideContextStore,
-} from '@qwen-code/qwen-code-core';
->>>>>>> main
+} from 'eadp-code-core';
 import type { Settings } from './settings.js';
 import stripJsonComments from 'strip-json-comments';
 

@@ -1,15 +1,7 @@
 {
   "name": "eadp-code",
-  "version": "0.0.14-alpha7",
-  "description": "eadp Code",
-<<<<<<< HEAD
-=======
-=======
-  "name": "@qwen-code/qwen-code",
   "version": "0.1.1",
-  "description": "Qwen Code",
->>>>>>> 9fce177bd8cb3629cbf2dcab8b9d7e8825b02892
->>>>>>> main
+  "description": "eadp Code",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/paulfrom/eadp-code.git"
@@ -33,34 +25,23 @@
     "dist"
   ],
   "config": {
-<<<<<<< HEAD
-    "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.0.14-alpha7"
-=======
     "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.1.1"
->>>>>>> main
   },
   "dependencies": {
     "@google/genai": "1.16.0",
     "@iarna/toml": "^2.2.5",
     "@modelcontextprotocol/sdk": "^1.15.1",
     "@types/update-notifier": "^6.0.8",
-<<<<<<< HEAD
     "cli-spinners": "^2.9.2",
-=======
     "ansi-regex": "^6.2.2",
->>>>>>> main
     "command-exists": "^1.2.9",
     "comment-json": "^4.2.5",
     "diff": "^7.0.0",
     "dotenv": "^17.1.0",
     "eadp-code-core": "file:../core",
     "fzf": "^0.5.2",
-<<<<<<< HEAD
-    "glob": "^10.4.1",
     "gradient-string": "^2.0.2",
-=======
     "glob": "^10.4.5",
->>>>>>> main
     "highlight.js": "^11.11.1",
     "ink": "^6.2.3",
     "ink-gradient": "^3.0.0",
@@ -76,11 +57,8 @@
     "string-width": "^7.1.0",
     "strip-ansi": "^7.1.0",
     "strip-json-comments": "^3.1.1",
-<<<<<<< HEAD
     "terminal-link": "^3.0.0",
-=======
     "tar": "^7.5.1",
->>>>>>> main
     "undici": "^7.10.0",
     "extract-zip": "^2.0.1",
     "update-notifier": "^7.3.1",

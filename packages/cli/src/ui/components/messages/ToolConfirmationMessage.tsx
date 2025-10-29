@@ -15,13 +15,8 @@ import type {
   ToolExecuteConfirmationDetails,
   ToolMcpConfirmationDetails,
   Config,
-<<<<<<< HEAD
 } from 'eadp-code-core';
-import { ToolConfirmationOutcome } from 'eadp-code-core';
-=======
-} from '@qwen-code/qwen-code-core';
-import { IdeClient, ToolConfirmationOutcome } from '@qwen-code/qwen-code-core';
->>>>>>> main
+import { IdeClient, ToolConfirmationOutcome } from 'eadp-code-core';
 import type { RadioSelectItem } from '../shared/RadioButtonSelect.js';
 import { RadioButtonSelect } from '../shared/RadioButtonSelect.js';
 import { MaxSizedBox } from '../shared/MaxSizedBox.js';
