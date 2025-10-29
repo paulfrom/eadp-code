@@ -12,8 +12,8 @@ import type { TextBuffer } from './shared/text-buffer.js';
 <<<<<<< HEAD
 import type { Config } from 'eadp-code-core';
 =======
-import type { Config } from '@qwen-code/qwen-code-core';
-import { ApprovalMode } from '@qwen-code/qwen-code-core';
+import type { Config } from 'eadp-code-core';
+import { ApprovalMode } from 'eadp-code-core';
 >>>>>>> main
 import * as path from 'node:path';
 import type { CommandContext, SlashCommand } from '../commands/types.js';

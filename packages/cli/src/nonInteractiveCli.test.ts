@@ -9,7 +9,7 @@ import type {
   ToolRegistry,
   ServerGeminiStreamEvent,
   SessionMetrics,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import {
   executeToolCall,
   ToolErrorType,
@@ -23,7 +23,7 @@ import { type Part } from '@google/genai';
   OutputFormat,
   uiTelemetryService,
   FatalInputError,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import type { Part } from '@google/genai';
 >>>>>>> main
 import { runNonInteractive } from './nonInteractiveCli.js';
@@ -37,7 +37,7 @@ vi.mock('eadp-code-core', async (importOriginal) => {
 <<<<<<< HEAD
     await importOriginal<typeof import('eadp-code-core')>();
 =======
-    await importOriginal<typeof import('@qwen-code/qwen-code-core')>();
+    await importOriginal<typeof import('eadp-code-core')>();
 
   class MockChatRecordingService {
     initialize = vi.fn();

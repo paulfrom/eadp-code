@@ -106,7 +106,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
       return null;
     }
 
-    const targetPath = path.resolve(this.config.storage.getGeminiDir(), relativePath);
+    const targetPath = path.resolve(this.config.storage.getQwenDir(), relativePath);
 
     // Check existence and type after resolving
     try {
@@ -130,7 +130,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
   async execute(): Promise<ToolResult> {
     try {
       // Get the API directory path with validation
-      const apiDir = path.join(this.config.storage.getGeminiDir(), 'api');
+      const apiDir = path.join(this.config.storage.getQwenDir(), 'api');
       
       // Validate API directory path
       try {

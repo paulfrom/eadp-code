@@ -16,10 +16,10 @@ vi.mock('child_process');
 vi.mock('glob');
 vi.mock('eadp-code-core', async (importOriginal) => {
 =======
-import { IDE_DEFINITIONS } from '@qwen-code/qwen-code-core';
-import * as core from '@qwen-code/qwen-code-core';
+import { IDE_DEFINITIONS } from 'eadp-code-core';
+import * as core from 'eadp-code-core';
 
-vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
+vi.mock('eadp-code-core', async (importOriginal) => {
 >>>>>>> main
   const original = await importOriginal<typeof core>();
   return {

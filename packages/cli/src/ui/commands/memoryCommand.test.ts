@@ -19,7 +19,7 @@ import {
 } from 'eadp-code-core';
 =======
   type LoadServerHierarchicalMemoryResponse,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 >>>>>>> main
 
 vi.mock('eadp-code-core', async (importOriginal) => {

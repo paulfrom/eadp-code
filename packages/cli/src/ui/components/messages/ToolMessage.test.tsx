@@ -11,14 +11,11 @@ import { ToolMessage } from './ToolMessage.js';
 import { StreamingState, ToolCallStatus } from '../../types.js';
 import { Text } from 'ink';
 import { StreamingContext } from '../../contexts/StreamingContext.js';
-<<<<<<< HEAD
-import type { Config } from 'eadp-code-core';
-=======
 import type {
   AnsiOutput,
   AnsiOutputDisplay,
   Config,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 
 vi.mock('../TerminalOutput.js', () => ({
   TerminalOutput: function MockTerminalOutput({
@@ -43,7 +40,6 @@ vi.mock('../AnsiOutput.js', () => ({
     return <Text>MockAnsiOutput:{serialized}</Text>;
   },
 }));
->>>>>>> main
 
 // Mock child components or utilities if they are complex or have side effects
 vi.mock('../GeminiRespondingSpinner.js', () => ({

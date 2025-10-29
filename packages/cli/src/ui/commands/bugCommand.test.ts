@@ -19,9 +19,9 @@ vi.mock('../utils/formatters.js');
 <<<<<<< HEAD
 vi.mock('eadp-code-core');
 =======
-vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
+vi.mock('eadp-code-core', async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import('@qwen-code/qwen-code-core')>();
+    await importOriginal<typeof import('eadp-code-core')>();
   return {
     ...actual,
     IdeClient: {

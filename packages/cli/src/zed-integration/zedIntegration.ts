@@ -29,12 +29,6 @@ import {
   isWithinRoot,
   isNodeError,
 } from 'eadp-code-core';
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
-import { Readable, Writable } from 'node:stream';
-import { z } from 'zod';
-import type { LoadedSettings } from '../config/settings.js';
-import { SettingScope } from '../config/settings.js';
 import * as acp from './acp.js';
 import { AcpFileSystemService } from './fileSystemService.js';
 import { Readable, Writable } from 'node:stream';

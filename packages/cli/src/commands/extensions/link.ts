@@ -9,7 +9,7 @@ import {
   installExtension,
   requestConsentNonInteractive,
 } from '../../config/extension.js';
-import type { ExtensionInstallMetadata } from '@qwen-code/qwen-code-core';
+import type { ExtensionInstallMetadata } from 'eadp-code-core';
 
 import { getErrorMessage } from '../../utils/errors.js';
 

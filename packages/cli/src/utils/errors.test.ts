@@ -5,8 +5,8 @@
  */
 
 import { vi, type MockInstance } from 'vitest';
-import type { Config } from '@qwen-code/qwen-code-core';
-import { OutputFormat, FatalInputError } from '@qwen-code/qwen-code-core';
+import type { Config } from 'eadp-code-core';
+import { OutputFormat, FatalInputError } from 'eadp-code-core';
 import {
   getErrorMessage,
   handleError,
@@ -16,9 +16,9 @@ import {
 } from './errors.js';
 
 // Mock the core modules
-vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
+vi.mock('eadp-code-core', async (importOriginal) => {
   const original =
-    await importOriginal<typeof import('@qwen-code/qwen-code-core')>();
+    await importOriginal<typeof import('eadp-code-core')>();
 
   return {
     ...original,

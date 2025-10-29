@@ -21,12 +21,7 @@ import {
 } from './gemini.js';
 import { type LoadedSettings } from './config/settings.js';
 import { appEvents, AppEvent } from './utils/events.js';
-<<<<<<< HEAD
 import type { Config } from 'eadp-code-core';
-import { FatalConfigError } from 'eadp-code-core';
-=======
-import type { Config } from '@qwen-code/qwen-code-core';
->>>>>>> main
 
 // Custom error to identify mock process.exit calls
 class MockProcessExitError extends Error {

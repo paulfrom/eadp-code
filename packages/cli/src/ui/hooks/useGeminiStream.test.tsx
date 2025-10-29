@@ -34,7 +34,7 @@ import {
 } from 'eadp-code-core';
 =======
   ToolConfirmationOutcome,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 >>>>>>> main
 import type { Part, PartListUnion } from '@google/genai';
 import type { UseHistoryManagerReturn } from './useHistoryManager.js';

@@ -9,8 +9,8 @@ import { validateNonInteractiveAuth } from './validateNonInterActiveAuth.js';
 <<<<<<< HEAD
 import { AuthType } from 'eadp-code-core';
 =======
-import { AuthType, OutputFormat } from '@qwen-code/qwen-code-core';
-import type { Config } from '@qwen-code/qwen-code-core';
+import { AuthType, OutputFormat } from 'eadp-code-core';
+import type { Config } from 'eadp-code-core';
 >>>>>>> main
 import * as auth from './config/auth.js';
 import { type LoadedSettings } from './config/settings.js';

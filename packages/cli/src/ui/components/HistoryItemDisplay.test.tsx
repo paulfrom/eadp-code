@@ -9,16 +9,12 @@ import { HistoryItemDisplay } from './HistoryItemDisplay.js';
 import { type HistoryItem, ToolCallStatus } from '../types.js';
 import { MessageType } from '../types.js';
 import { SessionStatsProvider } from '../contexts/SessionContext.js';
-<<<<<<< HEAD
-import type { Config } from 'eadp-code-core';
-=======
 import type {
   Config,
   ToolExecuteConfirmationDetails,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import { ToolGroupMessage } from './messages/ToolGroupMessage.js';
 import { renderWithProviders } from '../../test-utils/render.js';
->>>>>>> main
 
 // Mock child components
 vi.mock('./messages/ToolGroupMessage.js', () => ({

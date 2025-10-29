@@ -10,18 +10,13 @@ import { act } from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useGitBranchName } from './useGitBranchName.js';
 import { fs, vol } from 'memfs'; // For mocking fs
-<<<<<<< HEAD
-import { EventEmitter } from 'node:events';
-import { exec as mockExec, type ChildProcess } from 'node:child_process';
-=======
-import { spawnAsync as mockSpawnAsync } from '@qwen-code/qwen-code-core';
->>>>>>> main
+import { spawnAsync as mockSpawnAsync } from 'eadp-code-core';
 
-// Mock @qwen-code/qwen-code-core
-vi.mock('@qwen-code/qwen-code-core', async () => {
+// Mock eadp-code-core
+vi.mock('eadp-code-core', async () => {
   const original = await vi.importActual<
-    typeof import('@qwen-code/qwen-code-core')
-  >('@qwen-code/qwen-code-core');
+    typeof import('eadp-code-core')
+  >('eadp-code-core');
   return {
     ...original,
     spawnAsync: vi.fn(),
@@ -210,11 +205,7 @@ describe('useGitBranchName', () => {
     const closeMock = vi.fn();
     const watchMock = vi.spyOn(fs, 'watch').mockReturnValue({
       close: closeMock,
-<<<<<<< HEAD
-    } as any);
-=======
     } as unknown as ReturnType<typeof fs.watch>);
->>>>>>> main
 
     (mockSpawnAsync as MockedFunction<typeof mockSpawnAsync>).mockResolvedValue(
       {

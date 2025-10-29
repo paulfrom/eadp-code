@@ -67,7 +67,7 @@ import {
   migrateDeprecatedSettings,
   SettingScope,
 } from './settings.js';
-import { FatalConfigError, QWEN_DIR } from '@qwen-code/qwen-code-core';
+import { FatalConfigError, QWEN_DIR } from 'eadp-code-core';
 
 const MOCK_WORKSPACE_DIR = '/mock/workspace';
 // Use the (mocked) SETTINGS_DIRECTORY_NAME for consistency

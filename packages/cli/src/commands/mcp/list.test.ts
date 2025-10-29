@@ -12,7 +12,7 @@ import { loadExtensions } from '../../config/extension.js';
 import { createTransport } from 'eadp-code-core';
 =======
 import { ExtensionStorage, loadExtensions } from '../../config/extension.js';
-import { createTransport } from '@qwen-code/qwen-code-core';
+import { createTransport } from 'eadp-code-core';
 >>>>>>> main
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 

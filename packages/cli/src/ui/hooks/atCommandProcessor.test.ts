@@ -15,13 +15,8 @@ import {
   StandardFileSystemService,
   ToolRegistry,
   COMMON_IGNORE_PATTERNS,
-<<<<<<< HEAD
-  DEFAULT_FILE_EXCLUDES,
-} from 'eadp-code-core';
-=======
   // DEFAULT_FILE_EXCLUDES,
-} from '@qwen-code/qwen-code-core';
->>>>>>> main
+} from 'eadp-code-core';
 import * as os from 'node:os';
 import { ToolCallStatus } from '../types.js';
 import type { UseHistoryManagerReturn } from './useHistoryManager.js';

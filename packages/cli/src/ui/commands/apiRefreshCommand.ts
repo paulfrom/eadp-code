@@ -471,7 +471,7 @@ async function formatAndSaveAllApiInfoByTag(swaggerData: any, config: Config, co
     }
   }
 
-  const apiDir = path.join(config.storage.getGeminiDir(), 'api');
+  const apiDir = path.join(config.storage.getQwenDir(), 'api');
   fs.mkdirSync(apiDir, { recursive: true });
 
   // If a specific tag is provided, only process that tag

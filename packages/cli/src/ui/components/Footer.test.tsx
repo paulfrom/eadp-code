@@ -12,7 +12,7 @@ import * as useTerminalSize from '../hooks/useTerminalSize.js';
 import { tildeifyPath } from 'eadp-code-core';
 import path from 'node:path';
 =======
-import { tildeifyPath } from '@qwen-code/qwen-code-core';
+import { tildeifyPath } from 'eadp-code-core';
 import { type UIState, UIStateContext } from '../contexts/UIStateContext.js';
 import { ConfigContext } from '../contexts/ConfigContext.js';
 import { SettingsContext } from '../contexts/SettingsContext.js';

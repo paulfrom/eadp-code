@@ -29,16 +29,8 @@ import {
   DEFAULT_TRUNCATE_TOOL_OUTPUT_LINES,
   DEFAULT_TRUNCATE_TOOL_OUTPUT_THRESHOLD,
   ApprovalMode,
-<<<<<<< HEAD
-  Kind,
-  BaseDeclarativeTool,
-  BaseToolInvocation,
-} from 'eadp-code-core';
-import type { HistoryItemWithoutId, HistoryItemToolGroup } from '../types.js';
-=======
   MockTool,
-} from '@qwen-code/qwen-code-core';
->>>>>>> main
+} from 'eadp-code-core';
 import { ToolCallStatus } from '../types.js';
 
 // Mocks

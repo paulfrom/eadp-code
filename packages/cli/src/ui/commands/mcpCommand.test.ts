@@ -24,7 +24,7 @@ vi.mock('eadp-code-core', async (importOriginal) => {
 <<<<<<< HEAD
     await importOriginal<typeof import('eadp-code-core')>();
 =======
-    await importOriginal<typeof import('@qwen-code/qwen-code-core')>();
+    await importOriginal<typeof import('eadp-code-core')>();
   const mockAuthenticate = vi.fn();
 >>>>>>> main
   return {
