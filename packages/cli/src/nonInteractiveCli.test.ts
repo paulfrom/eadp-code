@@ -15,17 +15,11 @@ import {
   ToolErrorType,
   shutdownTelemetry,
   GeminiEventType,
-<<<<<<< HEAD
-  type ServerGeminiStreamEvent,
-} from 'eadp-code-core';
-import { type Part } from '@google/genai';
-=======
   OutputFormat,
   uiTelemetryService,
   FatalInputError,
 } from 'eadp-code-core';
 import type { Part } from '@google/genai';
->>>>>>> main
 import { runNonInteractive } from './nonInteractiveCli.js';
 import { vi } from 'vitest';
 import type { LoadedSettings } from './config/settings.js';
@@ -34,9 +28,6 @@ import type { LoadedSettings } from './config/settings.js';
 vi.mock('./ui/hooks/atCommandProcessor.js');
 vi.mock('eadp-code-core', async (importOriginal) => {
   const original =
-<<<<<<< HEAD
-    await importOriginal<typeof import('eadp-code-core')>();
-=======
     await importOriginal<typeof import('eadp-code-core')>();
 
   class MockChatRecordingService {
@@ -46,7 +37,6 @@ vi.mock('eadp-code-core', async (importOriginal) => {
     recordToolCalls = vi.fn();
   }
 
->>>>>>> main
   return {
     ...original,
     executeToolCall: vi.fn(),

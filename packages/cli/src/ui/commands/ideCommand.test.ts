@@ -8,19 +8,10 @@ import type { MockInstance } from 'vitest';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ideCommand } from './ideCommand.js';
 import { type CommandContext } from './types.js';
-<<<<<<< HEAD
-import { type Config, DetectedIde } from 'eadp-code-core';
-import * as core from 'eadp-code-core';
-
-vi.mock('child_process');
-vi.mock('glob');
-vi.mock('eadp-code-core', async (importOriginal) => {
-=======
 import { IDE_DEFINITIONS } from 'eadp-code-core';
 import * as core from 'eadp-code-core';
 
 vi.mock('eadp-code-core', async (importOriginal) => {
->>>>>>> main
   const original = await importOriginal<typeof core>();
   return {
     ...original,

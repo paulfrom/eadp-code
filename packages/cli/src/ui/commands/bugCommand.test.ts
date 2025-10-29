@@ -16,9 +16,6 @@ import { formatMemoryUsage } from '../utils/formatters.js';
 vi.mock('open');
 vi.mock('../../utils/version.js');
 vi.mock('../utils/formatters.js');
-<<<<<<< HEAD
-vi.mock('eadp-code-core');
-=======
 vi.mock('eadp-code-core', async (importOriginal) => {
   const actual =
     await importOriginal<typeof import('eadp-code-core')>();
@@ -32,7 +29,6 @@ vi.mock('eadp-code-core', async (importOriginal) => {
     sessionId: 'test-session-id',
   };
 });
->>>>>>> main
 vi.mock('node:process', () => ({
   default: {
     platform: 'test-platform',
@@ -47,12 +43,6 @@ describe('bugCommand', () => {
   beforeEach(() => {
     vi.mocked(getCliVersion).mockResolvedValue('0.1.0');
     vi.mocked(formatMemoryUsage).mockReturnValue('100 MB');
-<<<<<<< HEAD
-    vi.mock('eadp-code-core', () => ({
-      sessionId: 'test-session-id',
-    }));
-=======
->>>>>>> main
     vi.stubEnv('SANDBOX', 'qwen-test');
   });
 

@@ -15,12 +15,8 @@ import {
   getErrorMessage,
   loadServerHierarchicalMemory,
   type FileDiscoveryService,
-<<<<<<< HEAD
-} from 'eadp-code-core';
-=======
   type LoadServerHierarchicalMemoryResponse,
 } from 'eadp-code-core';
->>>>>>> main
 
 vi.mock('eadp-code-core', async (importOriginal) => {
   const original =

@@ -27,15 +27,10 @@ import {
 import {
   QWEN_DIR,
   type GeminiCLIExtension,
-<<<<<<< HEAD
-  type MCPServerConfig,
-} from 'eadp-code-core';
-=======
   ExtensionUninstallEvent,
   ExtensionDisableEvent,
   ExtensionEnableEvent,
 } from 'eadp-code-core';
->>>>>>> main
 import { execSync } from 'node:child_process';
 import { SettingScope } from './settings.js';
 import { isWorkspaceTrusted } from './trustedFolders.js';

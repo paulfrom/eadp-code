@@ -623,6 +623,9 @@ export function loadSettings(
           }
         }
         return { settings: settingsObject as Settings, rawJson: content };
+      } else {
+        // If there was an error loading the file, try to create a default one
+        createDefaultSettingsFile(filePath, scope);
       }
     } catch (error: unknown) {
       settingsErrors.push({
@@ -788,4 +791,62 @@ export function saveSettings(settingsFile: SettingsFile): void {
   } catch (error) {
     console.error('Error saving user settings file:', error);
   }
+}
+
+
+/**
+ * Creates a default settings object with all default values from the schema
+ */
+export function createDefaultSettings(): Settings {
+  const schema = getSettingsSchema();
+  
+  function createDefaultsFromSchema(schemaObj: SettingsSchema): Settings {
+    const defaults: Record<string, any> = {};
+    
+    for (const [key, definition] of Object.entries(schemaObj)) {
+      if (definition.properties) {
+        // This is an object type with nested properties
+        defaults[key] = createDefaultsFromSchema(definition.properties);
+      } else {
+        // This is a leaf node with a default value
+        defaults[key] = definition.default;
+      }
+    }
+    
+    return defaults as Settings;
+  }
+  
+  return createDefaultsFromSchema(schema);
+}
+
+
+
+/**
+ * Creates a default settings file at the specified path if it doesn't exist
+ */
+function createDefaultSettingsFile(
+  filePath: string,
+  scope: SettingScope,
+): Settings {
+  if (scope !== SettingScope.Workspace) {
+    return {};
+  }
+  const dirPath = path.dirname(filePath);
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+
+  const defaultSettings = createDefaultSettings();
+  const settingsFile: SettingsFile = {
+    settings: defaultSettings,
+    originalSettings: defaultSettings,
+    path: filePath,
+  };
+
+  saveSettings(settingsFile);
+  console.log(
+    `Created default ${scope.toLowerCase()} settings file at: ${filePath}`,
+  );
+
+  return defaultSettings;
 }

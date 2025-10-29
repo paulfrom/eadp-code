@@ -7,13 +7,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as os from 'node:os';
 import * as path from 'node:path';
-<<<<<<< HEAD
-import { ShellTool, EditTool, WriteFileTool } from 'eadp-code-core';
-import { loadCliConfig, parseArguments, type CliArgs } from './config.js';
-import type { Settings } from './settings.js';
-import type { Extension } from './extension.js';
-import * as ServerConfig from 'eadp-code-core';
-=======
 import {
   ShellTool,
   EditTool,
@@ -25,7 +18,6 @@ import { loadCliConfig, parseArguments, type CliArgs } from './config.js';
 import type { Settings } from './settings.js';
 import { ExtensionStorage, type Extension } from './extension.js';
 import * as ServerConfig from 'eadp-code-core';
->>>>>>> main
 import { isWorkspaceTrusted } from './trustedFolders.js';
 import { ExtensionEnablementManager } from './extensions/extensionEnablement.js';
 

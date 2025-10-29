@@ -28,14 +28,10 @@ import type {
 import {
   ApprovalMode,
   AuthType,
-  GeminiEventType as ServerGeminiEventType,
+  GeminiEventType as ServerGeminiEventType,W
   ToolErrorType,
-<<<<<<< HEAD
-} from 'eadp-code-core';
-=======
   ToolConfirmationOutcome,
 } from 'eadp-code-core';
->>>>>>> main
 import type { Part, PartListUnion } from '@google/genai';
 import type { UseHistoryManagerReturn } from './useHistoryManager.js';
 import type { HistoryItem, SlashCommandProcessorResult } from '../types.js';

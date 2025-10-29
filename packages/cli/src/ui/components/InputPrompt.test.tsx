@@ -9,12 +9,8 @@ import { waitFor, act } from '@testing-library/react';
 import type { InputPromptProps } from './InputPrompt.js';
 import { InputPrompt } from './InputPrompt.js';
 import type { TextBuffer } from './shared/text-buffer.js';
-<<<<<<< HEAD
-import type { Config } from 'eadp-code-core';
-=======
 import type { Config } from 'eadp-code-core';
 import { ApprovalMode } from 'eadp-code-core';
->>>>>>> main
 import * as path from 'node:path';
 import type { CommandContext, SlashCommand } from '../commands/types.js';
 import { CommandKind } from '../commands/types.js';

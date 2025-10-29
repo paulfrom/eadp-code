@@ -8,17 +8,12 @@ import { render } from 'ink-testing-library';
 import { describe, it, expect, vi } from 'vitest';
 import { Footer } from './Footer.js';
 import * as useTerminalSize from '../hooks/useTerminalSize.js';
-<<<<<<< HEAD
-import { tildeifyPath } from 'eadp-code-core';
-import path from 'node:path';
-=======
 import { tildeifyPath } from 'eadp-code-core';
 import { type UIState, UIStateContext } from '../contexts/UIStateContext.js';
 import { ConfigContext } from '../contexts/ConfigContext.js';
 import { SettingsContext } from '../contexts/SettingsContext.js';
 import type { LoadedSettings } from '../../config/settings.js';
 import { VimModeProvider } from '../contexts/VimModeContext.js';
->>>>>>> main
 
 vi.mock('../hooks/useTerminalSize.js');
 const useTerminalSizeMock = vi.mocked(useTerminalSize.useTerminalSize);
