@@ -8,10 +8,7 @@ import { useState, useCallback } from 'react';
 import type { LoadedSettings, SettingScope } from '../../config/settings.js';
 import { type HistoryItem, MessageType } from '../types.js';
 import type { EditorType } from 'eadp-code-core';
-import {
-  allowEditorTypeInSandbox,
-  checkHasEditorType,
-} from 'eadp-code-core';
+import { allowEditorTypeInSandbox, checkHasEditorType } from 'eadp-code-core';
 
 interface UseEditorSettingsReturn {
   isEditorDialogOpen: boolean;
@@ -45,7 +42,7 @@ export const useEditorSettings = (
       }
 
       try {
-        loadedSettings.setValue(scope, 'preferredEditor', editorType);
+        loadedSettings.setValue(scope, 'general.preferredEditor', editorType);
         addItem(
           {
             type: MessageType.INFO,

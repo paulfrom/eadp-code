@@ -13,7 +13,7 @@
     "url": "git+https://github.com/paulfrom/eadp-code.git"
   },
   "config": {
-    "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.1.1"
+    "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.1.2"
   },
   "scripts": {
     "start": "cross-env node scripts/start.js",
