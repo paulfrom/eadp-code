@@ -5,8 +5,14 @@
  */
 
 import type { SubagentConfig } from './types.js';
-import { EadpFrontendGuideSubagent } from './eadp-frontend-guide.js';
-import { EadpBackendGuideSubagent } from './eadp-backend-guide.js';
+import { EadpBasicDevGuideSubagent } from './eadp-basic-dev-guide.js';
+import { EadpAuthDevGuideSubagent } from './eadp-auth-dev-guide.js';
+import { EadpDataAuthDevGuideSubagent } from './eadp-data-auth-dev-guide.js';
+import { EadpAttachmentDevGuideSubagent } from './eadp-attachment-dev-guide.js';
+import { EadpMessageDevGuideSubagent } from './eadp-message-dev-guide.js';
+import { EadpWorkflowDevGuideSubagent } from './eadp-workflow-dev-guide.js';
+import { EadpFrontendComponentGuideSubagent } from './eadp-frontend-component-dev-guide.js';
+import { EadpDevelopmentCollaborationGuide } from './eadp-development-collaboration-guide.js';
 
 /**
  * Registry of built-in subagents that are always available to all users.
@@ -17,6 +23,45 @@ export class BuiltinAgentRegistry {
     Omit<SubagentConfig, 'level' | 'filePath'>
   > = [
     {
+      name: EadpDevelopmentCollaborationGuide.Name,
+      description: EadpDevelopmentCollaborationGuide.Description,
+      systemPrompt: new EadpDevelopmentCollaborationGuide().systemPrompt,
+    },
+    {
+      name: EadpBasicDevGuideSubagent.Name,
+      description: EadpBasicDevGuideSubagent.Description,
+      systemPrompt: new EadpBasicDevGuideSubagent().systemPrompt,
+    },
+    {
+      name: EadpAuthDevGuideSubagent.Name,
+      description: EadpAuthDevGuideSubagent.Description,
+      systemPrompt: new EadpAuthDevGuideSubagent().systemPrompt,
+    },
+    {
+      name: EadpDataAuthDevGuideSubagent.Name,
+      description: EadpDataAuthDevGuideSubagent.Description,
+      systemPrompt: new EadpDataAuthDevGuideSubagent().systemPrompt,
+    },
+    {
+      name: EadpAttachmentDevGuideSubagent.Name,
+      description: EadpAttachmentDevGuideSubagent.Description,
+      systemPrompt: new EadpAttachmentDevGuideSubagent().systemPrompt,
+    },
+    {
+      name: EadpMessageDevGuideSubagent.Name,
+      description: EadpMessageDevGuideSubagent.Description,
+      systemPrompt: new EadpMessageDevGuideSubagent().systemPrompt,
+    },
+    {
+      name: EadpWorkflowDevGuideSubagent.Name,
+      description: EadpWorkflowDevGuideSubagent.Description,
+      systemPrompt: new EadpWorkflowDevGuideSubagent().systemPrompt,
+    },
+    {
+      name: EadpFrontendComponentGuideSubagent.Name,
+      description: EadpFrontendComponentGuideSubagent.Description,
+      systemPrompt: new EadpFrontendComponentGuideSubagent().systemPrompt,
+    },{
       name: 'general-purpose',
       description:
         'General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks. When you are searching for a keyword or file and are not confident that you will find the right match in the first few tries use this agent to perform the search for you.',
@@ -44,16 +89,7 @@ Notes:
 - In your final response always share relevant file names and code snippets. Any file paths you return in your response MUST be absolute. Do NOT use relative paths.
 - For clear communication with the user the assistant MUST avoid using emojis.`,
     },
-    {
-      name: EadpFrontendGuideSubagent.Name,
-      description: EadpFrontendGuideSubagent.Description,
-      systemPrompt: new EadpFrontendGuideSubagent().systemPrompt,
-    },
-    {
-      name: EadpBackendGuideSubagent.Name,
-      description: EadpBackendGuideSubagent.Description,
-      systemPrompt: new EadpBackendGuideSubagent().systemPrompt,
-    },
+    
   ];
 
   /**
