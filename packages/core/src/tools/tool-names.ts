@@ -14,7 +14,7 @@ export const ToolNames = {
   WRITE_FILE: 'write_file',
   READ_FILE: 'read_file',
   READ_MANY_FILES: 'read_many_files',
-  GREP: 'search_file_content',
+  GREP: 'grep_search',
   GLOB: 'glob',
   SHELL: 'run_shell_command',
   TODO_WRITE: 'todo_write',
@@ -22,4 +22,6 @@ export const ToolNames = {
   TASK: 'task',
   EXIT_PLAN_MODE: 'exit_plan_mode',
   QUERY_API: 'query_api',
+  WEB_FETCH: 'web_fetch',
+  WEB_SEARCH: 'web_search',
 } as const;
