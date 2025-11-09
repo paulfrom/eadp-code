@@ -57,7 +57,7 @@ import { TaskTool } from '../tools/task.js';
 import { TodoWriteTool } from '../tools/todoWrite.js';
 import { ToolRegistry } from '../tools/tool-registry.js';
 import { WebFetchTool } from '../tools/web-fetch.js';
-import { WebSearchTool } from '../tools/web-search.js';
+import { WebSearchTool } from '../tools/web-search/index.js';
 import { WriteFileTool } from '../tools/write-file.js';
 
 // Other modules
@@ -161,7 +161,7 @@ export interface ExtensionInstallMetadata {
   autoUpdate?: boolean;
 }
 
-export const DEFAULT_TRUNCATE_TOOL_OUTPUT_THRESHOLD = 4_000_000;
+export const DEFAULT_TRUNCATE_TOOL_OUTPUT_THRESHOLD = 25_000;
 export const DEFAULT_TRUNCATE_TOOL_OUTPUT_LINES = 1000;
 
 export class MCPServerConfig {
@@ -262,11 +262,19 @@ export interface ConfigParameters {
   cliVersion?: string;
   loadMemoryFromIncludeDirectories?: boolean;
   // Web search providers
-  tavilyApiKey?: string;
+  webSearch?: {
+    provider: Array<{
+      type: 'tavily' | 'google' | 'dashscope';
+      apiKey?: string;
+      searchEngineId?: string;
+    }>;
+    default: string;
+  };
   chatCompression?: ChatCompressionSettings;
   interactive?: boolean;
   trustedFolder?: boolean;
   useRipgrep?: boolean;
+  useBuiltinRipgrep?: boolean;
   shouldUseNodePtyShell?: boolean;
   skipNextSpeakerCheck?: boolean;
   shellExecutionConfig?: ShellExecutionConfig;
@@ -280,6 +288,7 @@ export interface ConfigParameters {
   eventEmitter?: EventEmitter;
   useSmartEdit?: boolean;
   output?: OutputSettings;
+  skipStartupContext?: boolean;
 }
 
 export class Config {
@@ -350,17 +359,26 @@ export class Config {
   private readonly cliVersion?: string;
   private readonly experimentalZedIntegration: boolean = false;
   private readonly loadMemoryFromIncludeDirectories: boolean = false;
-  private readonly tavilyApiKey?: string;
+  private readonly webSearch?: {
+    provider: Array<{
+      type: 'tavily' | 'google' | 'dashscope';
+      apiKey?: string;
+      searchEngineId?: string;
+    }>;
+    default: string;
+  };
   private readonly chatCompression: ChatCompressionSettings | undefined;
   private readonly interactive: boolean;
   private readonly trustedFolder: boolean | undefined;
   private readonly useRipgrep: boolean;
+  private readonly useBuiltinRipgrep: boolean;
   private readonly shouldUseNodePtyShell: boolean;
   private readonly skipNextSpeakerCheck: boolean;
   private shellExecutionConfig: ShellExecutionConfig;
   private readonly extensionManagement: boolean = true;
   private readonly enablePromptCompletion: boolean = false;
   private readonly skipLoopDetection: boolean;
+  private readonly skipStartupContext: boolean;
   private readonly vlmSwitchMode: string | undefined;
   private initialized: boolean = false;
   readonly storage: Storage;
@@ -452,13 +470,13 @@ export class Config {
     this.chatCompression = params.chatCompression;
     this.interactive = params.interactive ?? false;
     this.trustedFolder = params.trustedFolder;
-    this.shouldUseNodePtyShell = params.shouldUseNodePtyShell ?? false;
-    this.skipNextSpeakerCheck = params.skipNextSpeakerCheck ?? false;
     this.skipLoopDetection = params.skipLoopDetection ?? false;
+    this.skipStartupContext = params.skipStartupContext ?? false;
 
     // Web search
-    this.tavilyApiKey = params.tavilyApiKey;
+    this.webSearch = params.webSearch;
     this.useRipgrep = params.useRipgrep ?? true;
+    this.useBuiltinRipgrep = params.useBuiltinRipgrep ?? true;
     this.shouldUseNodePtyShell = params.shouldUseNodePtyShell ?? false;
     this.skipNextSpeakerCheck = params.skipNextSpeakerCheck ?? true;
     this.shellExecutionConfig = {
@@ -911,8 +929,8 @@ export class Config {
   }
 
   // Web search provider configuration
-  getTavilyApiKey(): string | undefined {
-    return this.tavilyApiKey;
+  getWebSearchConfig() {
+    return this.webSearch;
   }
 
   getIdeMode(): boolean {
@@ -988,6 +1006,10 @@ export class Config {
     return this.useRipgrep;
   }
 
+  getUseBuiltinRipgrep(): boolean {
+    return this.useBuiltinRipgrep;
+  }
+
   getShouldUseNodePtyShell(): boolean {
     return this.shouldUseNodePtyShell;
   }
@@ -1022,6 +1044,10 @@ export class Config {
     return this.skipLoopDetection;
   }
 
+  getSkipStartupContext(): boolean {
+    return this.skipStartupContext;
+  }
+
   getVlmSwitchMode(): string | undefined {
     return this.vlmSwitchMode;
   }
@@ -1031,6 +1057,13 @@ export class Config {
   }
 
   getTruncateToolOutputThreshold(): number {
+    if (
+      !this.enableToolOutputTruncation ||
+      this.truncateToolOutputThreshold <= 0
+    ) {
+      return Number.POSITIVE_INFINITY;
+    }
+
     return Math.min(
       // Estimate remaining context window in characters (1 token ~= 4 chars).
       4 *
@@ -1041,6 +1074,10 @@ export class Config {
   }
 
   getTruncateToolOutputLines(): number {
+    if (!this.enableToolOutputTruncation || this.truncateToolOutputLines <= 0) {
+      return Number.POSITIVE_INFINITY;
+    }
+
     return this.truncateToolOutputLines;
   }
 
@@ -1115,13 +1152,18 @@ export class Config {
       let useRipgrep = false;
       let errorString: undefined | string = undefined;
       try {
-        useRipgrep = await canUseRipgrep();
+        useRipgrep = await canUseRipgrep(this.getUseBuiltinRipgrep());
       } catch (error: unknown) {
         errorString = String(error);
       }
       if (useRipgrep) {
         registerCoreTool(RipGrepTool, this);
       } else {
+        errorString =
+          errorString ||
+          'Ripgrep is not available. Please install ripgrep globally.';
+
+        // Log for telemetry
         logRipgrepFallback(this, new RipgrepFallbackEvent(errorString));
         registerCoreTool(GrepTool, this);
       }
@@ -1142,8 +1184,10 @@ export class Config {
     registerCoreTool(TodoWriteTool, this);
     registerCoreTool(ExitPlanModeTool, this);
     registerCoreTool(WebFetchTool, this);
-    // Conditionally register web search tool only if Tavily API key is set
-    if (this.getTavilyApiKey()) {
+    // Conditionally register web search tool if web search provider is configured
+    // buildWebSearchConfig ensures qwen-oauth users get dashscope provider, so
+    // if tool is registered, config must exist
+    if (this.getWebSearchConfig()) {
       registerCoreTool(WebSearchTool, this);
     }
 
