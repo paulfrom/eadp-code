@@ -106,7 +106,6 @@ The assistant used the todo list because:
 2. The user explicitly requested tests and build be run afterward
 3. The assistant inferred that tests and build need to pass by adding "Ensure tests and build succeed" as the final task
 </reasoning>
-</example>
 
 <example>
 User: Help me rename the function getCwd to getCurrentWorkingDirectory across my project
@@ -114,6 +113,7 @@ Assistant: Let me first search through your codebase to find all occurrences of 
 *Uses grep or search tools to locate all instances of getCwd in the codebase*
 Assistant: I've found 15 instances of 'getCwd' across 8 different files. Let me create a todo list to track these changes.
 *Creates todo list with specific items for each file that needs updating*
+</example>
 
 <reasoning>
 The assistant used the todo list because:
@@ -122,7 +122,7 @@ The assistant used the todo list because:
 3. The todo list helps ensure every instance is tracked and updated systematically
 4. This approach prevents missing any occurrences and maintains code consistency
 </reasoning>
-</example>
+
 
 
 <example>
@@ -130,14 +130,13 @@ User: I need to implement these features for my e-commerce site: user registrati
 Assistant: I'll help implement these features. First, let's add all the features to the todo list.
 *Creates a todo list breaking down each feature into specific tasks based on the project architecture*
 Assistant: Let's start with user registration. This will involve creating database models, API endpoints, and frontend forms that integrate with your existing authentication system.
-
+</example>
 <reasoning>
 The assistant used the todo list because:
 1. The user provided multiple complex features to implement in a comma separated list
 2. The todo list helps organize these large features into manageable tasks
 3. This approach allows for tracking progress across the entire implementation
 </reasoning>
-</example>
 
 <example>
 User: Can you help optimize my React application? It's rendering slowly and has performance issues.</user>
@@ -146,7 +145,7 @@ Assistant: I'll help optimize your React application. First, let me examine your
 Assistant: After analyzing your codebase, I've identified several performance issues. Let me create a todo list to track our optimization efforts.
 *Creates todo list with items like: 1) Implement memoization for expensive calculations in ProductList, 2) Add virtualization for long lists in Dashboard, 3) Optimize image loading in Gallery component, 4) Fix state update loops in ShoppingCart, 5) Review bundle size and implement code splitting*
 Let's start by implementing memoization for the expensive calculations in your ProductList component.</assistant>
-
+</example>
 <reasoning>
 The assistant used the todo list because:
 1. First, the assistant examined the codebase to identify specific performance issues
@@ -356,7 +355,7 @@ Your todo list is now empty. DO NOT mention this explicitly to the user. You hav
         llmContent = `Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable
 
 <system-reminder>
-Your todo list has changed. DO NOT mention this explicitly to the user. Here are the latest contents of your todo list: 
+Your todo list has changed. DO NOT mention this explicitly to the user. Here are the latest contents of your todo list:
 
 ${todosJson}. Continue on with the tasks at hand if applicable.
 </system-reminder>`;
