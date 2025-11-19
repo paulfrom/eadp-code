@@ -7,7 +7,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { Config } from '../config/config.js';
-import { ToolNames } from './tool-names.js';
+import { ToolNames, ToolDisplayNames } from './tool-names.js';
 import type { ToolInvocation, ToolResult } from './tools.js';
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
 
@@ -62,7 +62,7 @@ class ApiCache {
   get(apiDir: string): ApiServiceInfo[] | null {
     const dirStat = fs.statSync(apiDir);
     const currentModified = dirStat.mtime.getTime();
-    
+
     if (this.lastModified.get(apiDir) === currentModified) {
       return this.cache.get(apiDir) || null;
     }
@@ -78,7 +78,10 @@ class ApiCache {
 
 const apiCache = new ApiCache();
 
-class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, ToolResult> {
+class QueryApiToolInvocation extends BaseToolInvocation<
+  QueryApiToolParams,
+  ToolResult
+> {
   constructor(
     private readonly config: Config,
     params: QueryApiToolParams,
@@ -106,7 +109,10 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
       return null;
     }
 
-    const targetPath = path.resolve(this.config.storage.getQwenDir(), relativePath);
+    const targetPath = path.resolve(
+      this.config.storage.getQwenDir(),
+      relativePath,
+    );
 
     // Check existence and type after resolving
     try {
@@ -131,7 +137,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
     try {
       // Get the API directory path with validation
       const apiDir = path.join(this.config.storage.getQwenDir(), 'api');
-      
+
       // Validate API directory path
       try {
         this.resolveAndValidatePath('api');
@@ -141,7 +147,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
           returnDisplay: `API directory validation failed`,
         };
       }
-      
+
       if (!fs.existsSync(apiDir)) {
         return {
           llmContent: `未找到API文档目录 ${apiDir}。请先运行 /apiRefresh 命令生成API文档。\nNo API documentation directory found at ${apiDir}. Please run the swagger_api tool first to generate API documentation.`,
@@ -176,7 +182,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
           try {
             const filePath = path.join(apiDir, file);
             const content = fs.readFileSync(filePath, 'utf-8');
-            
+
             // Parse the file to extract API information
             const serviceInfo = this.parseApiFile(file, content);
             if (serviceInfo) {
@@ -188,7 +194,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
             continue;
           }
         }
-        
+
         // Cache the parsed data
         apiCache.set(apiDir, allServices);
       }
@@ -196,93 +202,109 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
       // Find the requested service with enhanced matching that identifies multiple possible matches
       // and returns the one with the highest match score
       const requestedServiceName = this.params.service_name.toLowerCase();
-      
+
       // Check if this is a pattern-based query (e.g., '\s+Api', '\s+服务', '\s+接口')
-      const isPatternQuery = requestedServiceName.includes('\\s+') || 
-                             requestedServiceName === 'api' || 
-                             requestedServiceName === '服务' || 
-                             requestedServiceName === '接口';
-      
+      const isPatternQuery =
+        requestedServiceName.includes('\\s+') ||
+        requestedServiceName === 'api' ||
+        requestedServiceName === '服务' ||
+        requestedServiceName === '接口';
+
       // Check if this is a multi-term query with | separator
       const hasMultipleTerms = requestedServiceName.includes('|');
-      
+
       if (isPatternQuery) {
         // For pattern queries, return all services that match the pattern
-        const matchingServices = this.findAllServicesMatchingPattern(requestedServiceName, allServices);
+        const matchingServices = this.findAllServicesMatchingPattern(
+          requestedServiceName,
+          allServices,
+        );
         if (matchingServices.length > 0) {
           // Create a combined result with all matching services
           const combinedResult: ApiServiceInfo = {
             service_name: `pattern_match_${requestedServiceName}`,
             service_display_name: `Services matching pattern: ${requestedServiceName}`,
-            methods: matchingServices.flatMap(service => service.methods)
+            methods: matchingServices.flatMap((service) => service.methods),
           };
-          
+
           // Limit results for performance (similar to ripGrep's approach)
           const MAX_RESULTS = 20000;
           const wasTruncated = combinedResult.methods.length > MAX_RESULTS;
           if (wasTruncated) {
-            combinedResult.methods = combinedResult.methods.slice(0, MAX_RESULTS);
+            combinedResult.methods = combinedResult.methods.slice(
+              0,
+              MAX_RESULTS,
+            );
           }
-          
+
           let llmContent = JSON.stringify(combinedResult, null, 2);
           if (wasTruncated) {
             llmContent += `\n\n注: 结果已被截断，仅显示前${MAX_RESULTS}个方法以提高性能。\nNote: Results were truncated, showing only the first ${MAX_RESULTS} methods for performance.`;
           }
-          
+
           let returnDisplay = `Found ${matchingServices.length} service(s) matching pattern "${requestedServiceName}"`;
           if (wasTruncated) {
             returnDisplay += ` (limited to ${MAX_RESULTS} methods)`;
           }
-          
+
           return {
             llmContent,
             returnDisplay,
           };
         } else {
           // If no services match the pattern, return an appropriate message
-          const availableServices = allServices.map(s => s.service_name).join(', ');
+          const availableServices = allServices
+            .map((s) => s.service_name)
+            .join(', ');
           return {
             llmContent: `未找到匹配模式 "${requestedServiceName}" 的服务。\nNo services found matching pattern: "${requestedServiceName}". Available services: ${availableServices}`,
             returnDisplay: `No services found matching pattern "${requestedServiceName}"`,
           };
         }
       }
-      
+
       // Handle multi-term queries (terms separated by |)
       let serviceTerms: string[] = [];
       if (hasMultipleTerms) {
         // Split by | and trim whitespace
-        serviceTerms = requestedServiceName.split('|').map(term => term.trim()).filter(term => term.length > 0);
+        serviceTerms = requestedServiceName
+          .split('|')
+          .map((term) => term.trim())
+          .filter((term) => term.length > 0);
       } else {
         serviceTerms = [requestedServiceName];
       }
-      
+
       // Try to find a service that matches any of the provided terms
       let serviceInfo = null;
-      
+
       // First, try exact matches for any term
       for (const term of serviceTerms) {
-        const exactMatch = allServices.find(service => 
-          service.service_name.toLowerCase() === term.toLowerCase() || 
-          service.service_display_name.toLowerCase() === term.toLowerCase()
+        const exactMatch = allServices.find(
+          (service) =>
+            service.service_name.toLowerCase() === term.toLowerCase() ||
+            service.service_display_name.toLowerCase() === term.toLowerCase(),
         );
         if (exactMatch) {
           serviceInfo = exactMatch;
           break;
         }
       }
-      
+
       // If no exact match, try fuzzy matching for each term
       if (!serviceInfo) {
         let bestMatchScore = 0;
         for (const term of serviceTerms) {
           // Generate possible service name interpretations for this term
           const possibleServiceNames = this.generatePossibleServiceNames(term);
-          
+
           // Check all services against all possible interpretations of this term
           for (const service of allServices) {
             for (const possibleName of possibleServiceNames) {
-              const score = this.calculateServiceMatchScore(possibleName, service);
+              const score = this.calculateServiceMatchScore(
+                possibleName,
+                service,
+              );
               if (score > bestMatchScore) {
                 bestMatchScore = score;
                 serviceInfo = service;
@@ -290,14 +312,20 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
             }
           }
         }
-      // If we still don't have a service match, try to suggest similar services based on any of the terms
+        // If we still don't have a service match, try to suggest similar services based on any of the terms
         // If service not found, try to suggest similar services based on the original request
-        const suggestions = this.findSimilarServices(this.params.service_name, allServices);
-        const suggestionText = suggestions.length > 0 
-          ? ` Did you mean: ${suggestions.map(s => `"${s.service_name}"`).join(', ')}?` 
-          : '';
-        const availableServices = allServices.map(s => s.service_name).join(', ');
-          
+        const suggestions = this.findSimilarServices(
+          this.params.service_name,
+          allServices,
+        );
+        const suggestionText =
+          suggestions.length > 0
+            ? ` Did you mean: ${suggestions.map((s) => `"${s.service_name}"`).join(', ')}?`
+            : '';
+        const availableServices = allServices
+          .map((s) => s.service_name)
+          .join(', ');
+
         return {
           llmContent: `未找到服务 "${this.params.service_name}" 的API信息。\nNo API information found for service: "${this.params.service_name}".${suggestionText} Available services: ${availableServices}`,
           returnDisplay: `Service "${this.params.service_name}" not found`,
@@ -308,14 +336,20 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
       let methods = serviceInfo.methods;
       if (this.params.operation_keyword) {
         const keyword = this.params.operation_keyword.toLowerCase();
-        methods = methods.filter(method => 
-          method.api_desc.toLowerCase().includes(keyword) ||
-          this.containsChineseKeyword(method.api_desc, this.params.operation_keyword || '')
+        methods = methods.filter(
+          (method) =>
+            method.api_desc.toLowerCase().includes(keyword) ||
+            this.containsChineseKeyword(
+              method.api_desc,
+              this.params.operation_keyword || '',
+            ),
         );
       }
 
       if (methods.length === 0) {
-        const availableMethods = serviceInfo.methods.map(m => m.api_desc).join(', ');
+        const availableMethods = serviceInfo.methods
+          .map((m) => m.api_desc)
+          .join(', ');
         return {
           llmContent: `服务 "${serviceInfo.service_display_name}" 中未找到匹配 "${this.params.operation_keyword}" 的接口。\nNo API methods found matching keyword "${this.params.operation_keyword}" in service "${serviceInfo.service_display_name}". Available methods: ${availableMethods}`,
           returnDisplay: `No matching API methods found`,
@@ -328,18 +362,18 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
       if (wasTruncated) {
         methods = methods.slice(0, MAX_RESULTS);
       }
-      
+
       const result: ApiServiceInfo = {
         service_name: serviceInfo.service_name,
         service_display_name: serviceInfo.service_display_name,
-        methods
+        methods,
       };
 
       let llmContent = JSON.stringify(result, null, 2);
       if (wasTruncated) {
         llmContent += `\n\n注: 结果已被截断，仅显示前${MAX_RESULTS}个方法以提高性能。\nNote: Results were truncated, showing only the first ${MAX_RESULTS} methods for performance.`;
       }
-      
+
       let returnDisplay = `Found ${methods.length} API method(s) in service "${serviceInfo.service_display_name}"`;
       if (wasTruncated) {
         returnDisplay += ` (limited to ${MAX_RESULTS} methods)`;
@@ -362,19 +396,23 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
   /**
    * Parse an API documentation file to extract structured information
    */
-  private parseApiFile(filename: string, content: string): ApiServiceInfo | null {
+  private parseApiFile(
+    filename: string,
+    content: string,
+  ): ApiServiceInfo | null {
     try {
       // Extract service name from filename (e.g., hr分组服务-HrGroupApi.md → group)
       const serviceName = this.extractServiceNameFromFilename(filename);
-      const serviceDisplayName = this.extractServiceDisplayNameFromFilename(filename);
-      
+      const serviceDisplayName =
+        this.extractServiceDisplayNameFromFilename(filename);
+
       // Extract all API methods from the markdown content
       const methods = this.extractApiMethods(content);
-      
+
       return {
         service_name: serviceName,
         service_display_name: serviceDisplayName,
-        methods
+        methods,
       };
     } catch (error) {
       console.error(`Error parsing API file ${filename}:`, error);
@@ -390,23 +428,27 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
     // First part before the dash contains the service description in Chinese
     const namePart = filename.replace('.md', '').split('-')[0];
     const fullFilename = filename.replace('.md', '');
-    
+
     // Try to get the service name from the second part of the filename (e.g., HrGroupApi)
     const secondPart = fullFilename.split('-')[1] || fullFilename;
-    
+
     // Extract the service name by looking for common patterns like HrGroupApi -> group
     // Handle various API suffix patterns
-    const serviceMatch = secondPart.match(/([A-Z][a-z]+)(?:Api|Service|Controller|Interface|Endpoint|Rest)/i);
+    const serviceMatch = secondPart.match(
+      /([A-Z][a-z]+)(?:Api|Service|Controller|Interface|Endpoint|Rest)/i,
+    );
     if (serviceMatch) {
       return serviceMatch[1].toLowerCase();
     }
-    
+
     // Handle more complex patterns with suffixes like HrGroupApiService -> group
-    const complexMatch = secondPart.match(/(?:[A-Z][a-z]+)*([A-Z][a-z]+)(?:Api|Service|Controller|Interface|Endpoint|Rest)[A-Z][a-z]*/i);
+    const complexMatch = secondPart.match(
+      /(?:[A-Z][a-z]+)*([A-Z][a-z]+)(?:Api|Service|Controller|Interface|Endpoint|Rest)[A-Z][a-z]*/i,
+    );
     if (complexMatch) {
       return complexMatch[1].toLowerCase();
     }
-    
+
     // Fallback to using the original name part if no API pattern is found
     // but normalize by removing special characters and taking first part if it contains multiple words
     const normalized = namePart.replace(/[^\w\s]/gi, ' ').trim();
@@ -434,19 +476,19 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
    */
   private extractApiMethods(content: string): ApiMethod[] {
     const methods: ApiMethod[] = [];
-    
+
     // Split content by headings to identify different API operations
     const sections = this.splitMarkdownIntoSections(content);
-    
+
     for (const section of sections) {
       if (section.trim() === '') continue;
-      
+
       const method = this.parseApiMethod(section);
       if (method) {
         methods.push(method);
       }
     }
-    
+
     return methods;
   }
 
@@ -457,7 +499,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
     const sections: string[] = [];
     const lines = content.split('\n');
     let currentSection = '';
-    
+
     for (const line of lines) {
       if (line.startsWith('# ')) {
         if (currentSection.trim() !== '') {
@@ -468,11 +510,11 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
         currentSection += line + '\n';
       }
     }
-    
+
     if (currentSection.trim() !== '') {
       sections.push(currentSection);
     }
-    
+
     return sections;
   }
 
@@ -486,16 +528,18 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
       const apiDesc = apiDescMatch ? apiDescMatch[1].trim() : 'No description';
 
       // Extract HTTP method
-      const methodMatch = section.match(/## Request Type `(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS|CONNECT|TRACE)`/i);
+      const methodMatch = section.match(
+        /## Request Type `(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS|CONNECT|TRACE)`/i,
+      );
       const httpMethod = methodMatch ? methodMatch[1].toUpperCase() : 'UNKNOWN';
-      
+
       // Extract path/URL
       const pathMatch = section.match(/## Request URL `([^`]+)`/);
       const path = pathMatch ? pathMatch[1] : 'Unknown Path';
-      
+
       // Extract request parameters from JSON example
       const requestParams = this.extractRequestParameters(section);
-      
+
       // Extract response schema from JSON example
       const responseSchema = this.extractResponseSchema(section);
 
@@ -504,7 +548,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
         http_method: httpMethod,
         path,
         request_params: requestParams,
-        response_schema: responseSchema
+        response_schema: responseSchema,
       };
     } catch (error) {
       console.error('Error parsing API method:', error);
@@ -515,30 +559,32 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
   /**
    * Extract request parameters from JSON examples in the section
    */
-  private extractRequestParameters(section: string): Record<string, { type: string; description: string }> {
+  private extractRequestParameters(
+    section: string,
+  ): Record<string, { type: string; description: string }> {
     const params: Record<string, { type: string; description: string }> = {};
-    
+
     // Find the request parameters section
     const requestParamStart = section.indexOf('## Request Parameters');
     if (requestParamStart === -1) return params;
-    
+
     const requestParamSection = section.substring(requestParamStart);
-    
+
     // Find JSON block in the request parameters section
     const jsonMatch = requestParamSection.match(/```json\n([\s\S]*?)\n```/);
     if (!jsonMatch) return params;
-    
+
     try {
       const jsonStr = jsonMatch[1].trim();
       const exampleObj = JSON.parse(jsonStr);
-      
+
       // Extract fields from the example object
       this.extractFieldsFromExample(exampleObj, params);
     } catch (e) {
       // If JSON parsing fails, try to extract from other content
       console.error('Error parsing request parameters JSON:', e);
     }
-    
+
     return params;
   }
 
@@ -547,13 +593,15 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
    */
   private extractResponseSchema(section: string): any {
     // Find the response examples section
-    const responseSection = section.substring(section.toLowerCase().indexOf('## response examples'));
+    const responseSection = section.substring(
+      section.toLowerCase().indexOf('## response examples'),
+    );
     if (responseSection === section) return null; // section not found
-    
+
     // Find JSON block in the response section
     const jsonMatch = responseSection.match(/```json\n([\s\S]*?)\n```/);
     if (!jsonMatch) return null;
-    
+
     try {
       const jsonStr = jsonMatch[1].trim();
       return JSON.parse(jsonStr);
@@ -566,19 +614,27 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
   /**
    * Extract fields from a JSON example object, including type and description
    */
-  private extractFieldsFromExample(obj: any, params: Record<string, { type: string; description: string }>, prefix: string = ''): void {
+  private extractFieldsFromExample(
+    obj: any,
+    params: Record<string, { type: string; description: string }>,
+    prefix: string = '',
+  ): void {
     if (obj === null || typeof obj !== 'object') return;
-    
+
     for (const [key, value] of Object.entries(obj)) {
       const fullKey = prefix ? `${prefix}.${key}` : key;
-      
-      if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+
+      if (
+        value !== null &&
+        typeof value === 'object' &&
+        !Array.isArray(value)
+      ) {
         // Nested object - recursively extract fields
         this.extractFieldsFromExample(value, params, fullKey);
       } else {
         // Extract type from the value
         let type = typeof value;
-        
+
         // If it's a string value, try to infer more specific types
         let actualType: string = type;
         if (type === 'string') {
@@ -598,13 +654,15 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
             actualType = 'array';
           }
         }
-        
+
         // Extract description from field name if not already present
-        let description = params[fullKey]?.description || this.generateDescriptionFromFieldName(key);
-        
+        let description =
+          params[fullKey]?.description ||
+          this.generateDescriptionFromFieldName(key);
+
         params[fullKey] = {
           type: actualType,
-          description
+          description,
         };
       }
     }
@@ -661,7 +719,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
    */
   private containsChineseKeyword(text: string, keyword: string): boolean {
     if (!keyword || !text) return false;
-    
+
     // For Chinese text matching, check if the keyword is contained in the text
     return text.includes(keyword);
   }
@@ -674,10 +732,16 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
     if (requested.includes('group') && available.includes('group')) return true;
     if (requested.includes('user') && available.includes('user')) return true;
     if (requested.includes('order') && available.includes('order')) return true;
-    if (requested.includes('product') && available.includes('product')) return true;
-    if (requested.includes('employee') && available.includes('employee')) return true;
-    if (requested.includes('organization') && available.includes('organization')) return true;
-    
+    if (requested.includes('product') && available.includes('product'))
+      return true;
+    if (requested.includes('employee') && available.includes('employee'))
+      return true;
+    if (
+      requested.includes('organization') &&
+      available.includes('organization')
+    )
+      return true;
+
     // For Chinese names - check if they contain similar semantic meaning
     if (requested.includes('分组') && available.includes('分组')) return true;
     if (requested.includes('用户') && available.includes('用户')) return true;
@@ -685,94 +749,183 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
     if (requested.includes('产品') && available.includes('产品')) return true;
     if (requested.includes('员工') && available.includes('员工')) return true;
     if (requested.includes('组织') && available.includes('组织')) return true;
-    
+
     return false;
   }
 
   /**
    * Check if a keyword matches a service
    */
-  private matchesServiceKeyword(keyword: string, serviceName: string, serviceDisplayName: string): boolean {
+  private matchesServiceKeyword(
+    keyword: string,
+    serviceName: string,
+    serviceDisplayName: string,
+  ): boolean {
     const lowerKeyword = keyword.toLowerCase();
     const lowerServiceName = serviceName.toLowerCase();
     const lowerDisplayName = serviceDisplayName.toLowerCase();
-    
+
     // Direct matches
-    if (lowerServiceName.includes(lowerKeyword) || lowerKeyword.includes(lowerServiceName)) return true;
+    if (
+      lowerServiceName.includes(lowerKeyword) ||
+      lowerKeyword.includes(lowerServiceName)
+    )
+      return true;
     if (lowerDisplayName.includes(lowerKeyword)) return true;
-    
+
     // Semantic matches
-    if (lowerKeyword.includes('group') && (lowerServiceName.includes('group') || lowerDisplayName.includes('分组'))) return true;
-    if (lowerKeyword.includes('user') && (lowerServiceName.includes('user') || lowerDisplayName.includes('用户'))) return true;
-    if (lowerKeyword.includes('order') && (lowerServiceName.includes('order') || lowerDisplayName.includes('订单'))) return true;
-    if (lowerKeyword.includes('product') && (lowerServiceName.includes('product') || lowerDisplayName.includes('产品'))) return true;
-    if (lowerKeyword.includes('employee') && (lowerServiceName.includes('employee') || lowerDisplayName.includes('员工'))) return true;
-    if (lowerKeyword.includes('organization') && (lowerServiceName.includes('organization') || lowerDisplayName.includes('组织'))) return true;
-    
+    if (
+      lowerKeyword.includes('group') &&
+      (lowerServiceName.includes('group') || lowerDisplayName.includes('分组'))
+    )
+      return true;
+    if (
+      lowerKeyword.includes('user') &&
+      (lowerServiceName.includes('user') || lowerDisplayName.includes('用户'))
+    )
+      return true;
+    if (
+      lowerKeyword.includes('order') &&
+      (lowerServiceName.includes('order') || lowerDisplayName.includes('订单'))
+    )
+      return true;
+    if (
+      lowerKeyword.includes('product') &&
+      (lowerServiceName.includes('product') ||
+        lowerDisplayName.includes('产品'))
+    )
+      return true;
+    if (
+      lowerKeyword.includes('employee') &&
+      (lowerServiceName.includes('employee') ||
+        lowerDisplayName.includes('员工'))
+    )
+      return true;
+    if (
+      lowerKeyword.includes('organization') &&
+      (lowerServiceName.includes('organization') ||
+        lowerDisplayName.includes('组织'))
+    )
+      return true;
+
     // For Chinese keywords
-    if (lowerKeyword.includes('分组') && (lowerServiceName.includes('group') || lowerDisplayName.includes('分组'))) return true;
-    if (lowerKeyword.includes('用户') && (lowerServiceName.includes('user') || lowerDisplayName.includes('用户'))) return true;
-    if (lowerKeyword.includes('订单') && (lowerServiceName.includes('order') || lowerDisplayName.includes('订单'))) return true;
-    if (lowerKeyword.includes('产品') && (lowerServiceName.includes('product') || lowerDisplayName.includes('产品'))) return true;
-    if (lowerKeyword.includes('员工') && (lowerServiceName.includes('employee') || lowerDisplayName.includes('员工'))) return true;
-    if (lowerKeyword.includes('组织') && (lowerServiceName.includes('organization') || lowerDisplayName.includes('组织'))) return true;
-    
+    if (
+      lowerKeyword.includes('分组') &&
+      (lowerServiceName.includes('group') || lowerDisplayName.includes('分组'))
+    )
+      return true;
+    if (
+      lowerKeyword.includes('用户') &&
+      (lowerServiceName.includes('user') || lowerDisplayName.includes('用户'))
+    )
+      return true;
+    if (
+      lowerKeyword.includes('订单') &&
+      (lowerServiceName.includes('order') || lowerDisplayName.includes('订单'))
+    )
+      return true;
+    if (
+      lowerKeyword.includes('产品') &&
+      (lowerServiceName.includes('product') ||
+        lowerDisplayName.includes('产品'))
+    )
+      return true;
+    if (
+      lowerKeyword.includes('员工') &&
+      (lowerServiceName.includes('employee') ||
+        lowerDisplayName.includes('员工'))
+    )
+      return true;
+    if (
+      lowerKeyword.includes('组织') &&
+      (lowerServiceName.includes('organization') ||
+        lowerDisplayName.includes('组织'))
+    )
+      return true;
+
     return false;
   }
 
   /**
    * Calculate match score for a service based on the requested service name
    */
-  private calculateServiceMatchScore(requested: string, service: ApiServiceInfo): number {
+  private calculateServiceMatchScore(
+    requested: string,
+    service: ApiServiceInfo,
+  ): number {
     let score = 0;
-    
+
     const serviceDisplayName = service.service_display_name.toLowerCase();
     const serviceName = service.service_name.toLowerCase();
     const requestedLower = requested.toLowerCase();
-    
+
     // Check if the requested pattern is a regex pattern that should match the service name structure
-    if (this.isRegexPatternMatch(requestedLower, serviceDisplayName, serviceName)) {
+    if (
+      this.isRegexPatternMatch(requestedLower, serviceDisplayName, serviceName)
+    ) {
       return 90; // High score for pattern matches
     }
-    
+
     // Exact match - highest score
-    if (serviceName === requestedLower || serviceDisplayName === requestedLower) {
+    if (
+      serviceName === requestedLower ||
+      serviceDisplayName === requestedLower
+    ) {
       return 100;
     }
-    
+
     // Service name similarity - high score
-    if (serviceName.includes(requestedLower) || requestedLower.includes(serviceName)) {
+    if (
+      serviceName.includes(requestedLower) ||
+      requestedLower.includes(serviceName)
+    ) {
       score += 25;
     }
-    
+
     // Display name similarity - high score
-    if (serviceDisplayName.includes(requestedLower) || requestedLower.includes(serviceDisplayName)) {
+    if (
+      serviceDisplayName.includes(requestedLower) ||
+      requestedLower.includes(serviceDisplayName)
+    ) {
       score += 20;
     }
-    
+
     // Partial matching with normalization - medium score
-    if (this.normalizeServiceName(service.service_display_name).includes(requestedLower) ||
-        requestedLower.includes(this.normalizeServiceName(service.service_display_name))) {
+    if (
+      this.normalizeServiceName(service.service_display_name).includes(
+        requestedLower,
+      ) ||
+      requestedLower.includes(
+        this.normalizeServiceName(service.service_display_name),
+      )
+    ) {
       score += 15;
     }
-    
+
     // Semantic similarity checks - medium to low score
     if (this.isSimilarServiceName(requestedLower, serviceDisplayName)) {
       score += 12;
     }
-    
+
     // Additional semantic checks based on common patterns
-    if (this.matchesServiceKeyword(requestedLower, serviceName, serviceDisplayName)) {
+    if (
+      this.matchesServiceKeyword(
+        requestedLower,
+        serviceName,
+        serviceDisplayName,
+      )
+    ) {
       score += 10;
     }
-    
+
     // Check if service display name contains parts of requested name or vice versa
     const requestedWords = requestedLower.split(/[\s\-_]+/);
     const displayNameWords = serviceDisplayName.split(/[\s\-_]+/);
-    
+
     // Add points for each matching word
     for (const reqWord of requestedWords) {
-      if (reqWord.length > 1) { // Only consider meaningful words
+      if (reqWord.length > 1) {
+        // Only consider meaningful words
         for (const dispWord of displayNameWords) {
           if (dispWord.includes(reqWord) || reqWord.includes(dispWord)) {
             score += 3;
@@ -780,55 +933,72 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
         }
       }
     }
-    
-    
+
     // Enhanced matching for common service patterns (e.g., "user api" matching "user")
     if (this.hasCommonServicePatternMatch(requestedLower, serviceDisplayName)) {
       score += 7;
     }
-    
+
     // Check for common abbreviations
     if (this.hasAbbreviationMatch(requestedLower, serviceName)) {
       score += 5;
     }
-    
+
     // Deduct points for services that are too different in length (avoid very short matches in long names)
-    const lengthDiff = Math.abs(requestedLower.length - serviceDisplayName.length);
+    const lengthDiff = Math.abs(
+      requestedLower.length - serviceDisplayName.length,
+    );
     if (lengthDiff > 20) {
       score = Math.max(0, score - Math.floor(lengthDiff / 5));
     }
-    
+
     return score;
   }
 
   /**
    * Check for common service pattern matches (e.g., "user api" matching "user")
    */
-  private hasCommonServicePatternMatch(requested: string, displayName: string): boolean {
+  private hasCommonServicePatternMatch(
+    requested: string,
+    displayName: string,
+  ): boolean {
     // Remove common suffixes like "api", "service", "management" etc. from both
     const cleanRequested = requested
-      .replace(/\b(api|service|svc|management|mgr|system|app|web|interface|module|endpoint|rest|controller)\b/g, '')
+      .replace(
+        /\b(api|service|svc|management|mgr|system|app|web|interface|module|endpoint|rest|controller)\b/g,
+        '',
+      )
       .replace(/\s+/g, ' ')
       .trim();
-      
+
     const cleanDisplayName = displayName
-      .replace(/\b(api|service|svc|management|mgr|system|app|web|interface|module|endpoint|rest|controller)\b/g, '')
+      .replace(
+        /\b(api|service|svc|management|mgr|system|app|web|interface|module|endpoint|rest|controller)\b/g,
+        '',
+      )
       .replace(/\s+/g, ' ')
       .trim();
-    
+
     // If cleaned versions match, it's a pattern match
-    if (cleanRequested && cleanDisplayName && 
-        (cleanRequested.includes(cleanDisplayName) || cleanDisplayName.includes(cleanRequested))) {
+    if (
+      cleanRequested &&
+      cleanDisplayName &&
+      (cleanRequested.includes(cleanDisplayName) ||
+        cleanDisplayName.includes(cleanRequested))
+    ) {
       return true;
     }
-    
+
     return false;
   }
 
   /**
    * Check for abbreviation matches (e.g., "usr" matching "user")
    */
-  private hasAbbreviationMatch(requested: string, serviceName: string): boolean {
+  private hasAbbreviationMatch(
+    requested: string,
+    serviceName: string,
+  ): boolean {
     // Common abbreviations mapping
     const abbreviations: [string, string[]][] = [
       ['usr', ['user']],
@@ -849,21 +1019,27 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
       ['cal', ['calendar']],
       ['evt', ['event']],
       ['tag', ['tag']],
-      ['cat', ['category']]
+      ['cat', ['category']],
     ];
 
     // Check if requested is an abbreviation of the service name
     for (const [abbrev, fullForms] of abbreviations) {
-      if (requested === abbrev && fullForms.some(full => serviceName.includes(full))) {
+      if (
+        requested === abbrev &&
+        fullForms.some((full) => serviceName.includes(full))
+      ) {
         return true;
       }
-      
+
       // Check if service name is an abbreviation of requested
-      if (serviceName === abbrev && fullForms.some(full => requested.includes(full))) {
+      if (
+        serviceName === abbrev &&
+        fullForms.some((full) => requested.includes(full))
+      ) {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -871,41 +1047,49 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
    * Check if the requested pattern is a regex pattern that should match service name structures
    * Handles patterns like '\s+Api', '\s+服务', '\s+接口'
    */
-  private isRegexPatternMatch(requested: string, serviceDisplayName: string, serviceName: string): boolean {
+  private isRegexPatternMatch(
+    requested: string,
+    serviceDisplayName: string,
+    serviceName: string,
+  ): boolean {
     // Check if the requested string is a regex pattern for common service name structures
     try {
       // Handle specific regex patterns that match common service naming conventions
       if (requested === '\\s+api' || requested === 'api') {
         // Match services that end with 'Api' (case insensitive)
-        return /api$/i.test(serviceName) || /api/i.test(serviceDisplayName) || /api$/i.test(serviceName);
+        return (
+          /api$/i.test(serviceName) ||
+          /api/i.test(serviceDisplayName) ||
+          /api$/i.test(serviceName)
+        );
       }
-      
+
       if (requested === '\\s+服务' || requested === '服务') {
         // Match services that contain '服务' in their display name
         return serviceDisplayName.includes('服务');
       }
-      
+
       if (requested === '\\s+接口' || requested === '接口') {
         // Match services that contain '接口' in their display name
         return serviceDisplayName.includes('接口');
       }
-      
+
       // Handle general regex patterns that might be checking for suffixes
       if (requested.includes('\\s+') && requested.includes('api')) {
         // Pattern like '\s+Api' - check if service name ends with 'Api'
         return /api$/i.test(serviceName);
       }
-      
+
       if (requested.includes('\\s+') && requested.includes('服务')) {
         // Pattern like '\s+服务' - check if service display name contains '服务'
         return serviceDisplayName.includes('服务');
       }
-      
+
       if (requested.includes('\\s+') && requested.includes('接口')) {
         // Pattern like '\s+接口' - check if service display name contains '接口'
         return serviceDisplayName.includes('接口');
       }
-      
+
       // Try to parse as a literal regex pattern if it starts and ends with '/'
       if (requested.startsWith('/') && requested.endsWith('/')) {
         const pattern = requested.slice(1, -1);
@@ -916,7 +1100,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
       // If regex parsing fails, continue with normal matching
       console.debug(`Failed to parse regex pattern: ${requested}`, e);
     }
-    
+
     return false;
   }
 
@@ -925,27 +1109,36 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
    */
   private generatePossibleServiceNames(requested: string): string[] {
     const possibleNames = [requested]; // Start with the original requested name
-    
+
     // Add variations by removing common service-related suffixes
     const suffixesToRemove = [
-      'service', 'svc', 'api', 'management', 'mgr', 'controller', 
-      '服务', '接口', '管理', '控制器', 'api接口'
+      'service',
+      'svc',
+      'api',
+      'management',
+      'mgr',
+      'controller',
+      '服务',
+      '接口',
+      '管理',
+      '控制器',
+      'api接口',
     ];
-    
+
     for (const suffix of suffixesToRemove) {
       if (requested.endsWith(suffix)) {
-        const variation = requested.substring(0, requested.length - suffix.length).trim();
+        const variation = requested
+          .substring(0, requested.length - suffix.length)
+          .trim();
         if (variation && !possibleNames.includes(variation)) {
           possibleNames.push(variation);
         }
       }
     }
-    
+
     // Add variations by removing common service-related prefixes
-    const prefixesToRemove = [
-      'crm', 'com_', 'api_', 'service_', 'svc_'
-    ];
-    
+    const prefixesToRemove = ['crm', 'com_', 'api_', 'service_', 'svc_'];
+
     for (const prefix of prefixesToRemove) {
       if (requested.startsWith(prefix)) {
         const variation = requested.substring(prefix.length).trim();
@@ -954,7 +1147,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
         }
       }
     }
-    
+
     // Add variations by splitting on common separators and taking parts
     if (requested.includes(' ')) {
       const parts = requested.split(/\s+/);
@@ -964,7 +1157,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
         }
       }
     }
-    
+
     if (requested.includes('-')) {
       const parts = requested.split('-');
       for (const part of parts) {
@@ -973,7 +1166,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
         }
       }
     }
-    
+
     if (requested.includes('_')) {
       const parts = requested.split('_');
       for (const part of parts) {
@@ -982,7 +1175,7 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
         }
       }
     }
-    
+
     // Add common abbreviations/expansions
     const commonMappings: [string, string][] = [
       ['customer', 'cust'],
@@ -1004,9 +1197,9 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
       ['service', 'svc'],
       ['group', 'grp'],
       ['user', 'usr'],
-      ['config', 'cfg']
+      ['config', 'cfg'],
     ];
-    
+
     for (const [full, abbrev] of commonMappings) {
       if (requested.includes(full)) {
         const variation = requested.replace(new RegExp(full, 'g'), abbrev);
@@ -1020,74 +1213,96 @@ class QueryApiToolInvocation extends BaseToolInvocation<QueryApiToolParams, Tool
         }
       }
     }
-    
+
     return possibleNames;
   }
 
   /**
    * Find all services that match a specific pattern
    */
-  private findAllServicesMatchingPattern(pattern: string, allServices: ApiServiceInfo[]): ApiServiceInfo[] {
+  private findAllServicesMatchingPattern(
+    pattern: string,
+    allServices: ApiServiceInfo[],
+  ): ApiServiceInfo[] {
     // Special case: if pattern is requesting all API services, return services ending with Api
     if (pattern === '\\s+api' || pattern === 'api') {
-      return allServices.filter(service => 
-        /api$/i.test(service.service_name) || 
-        service.service_name.toLowerCase().includes('api')
+      return allServices.filter(
+        (service) =>
+          /api$/i.test(service.service_name) ||
+          service.service_name.toLowerCase().includes('api'),
       );
     }
-    
+
     // Special case: if pattern is requesting all services with '服务' in display name
     if (pattern === '\\s+服务' || pattern === '服务') {
-      return allServices.filter(service => 
-        service.service_display_name.includes('服务')
+      return allServices.filter((service) =>
+        service.service_display_name.includes('服务'),
       );
     }
-    
+
     // Special case: if pattern is requesting all services with '接口' in display name
     if (pattern === '\\s+接口' || pattern === '接口') {
-      return allServices.filter(service => 
-        service.service_display_name.includes('接口')
+      return allServices.filter((service) =>
+        service.service_display_name.includes('接口'),
       );
     }
-    
+
     // For general pattern matching, check if any service matches
-    return allServices.filter(service => 
-      this.isRegexPatternMatch(pattern, service.service_display_name, service.service_name)
+    return allServices.filter((service) =>
+      this.isRegexPatternMatch(
+        pattern,
+        service.service_display_name,
+        service.service_name,
+      ),
     );
   }
 
   /**
    * Find services that are similar to the requested name for suggestions
    */
-  private findSimilarServices(requested: string, allServices: ApiServiceInfo[]): ApiServiceInfo[] {
-    const similarities = allServices.map(service => {
+  private findSimilarServices(
+    requested: string,
+    allServices: ApiServiceInfo[],
+  ): ApiServiceInfo[] {
+    const similarities = allServices.map((service) => {
       let score = 0;
-      
+
       // Score based on service name similarity
-      if (service.service_name.toLowerCase().includes(requested.toLowerCase()) || 
-          requested.toLowerCase().includes(service.service_name.toLowerCase())) {
+      if (
+        service.service_name.toLowerCase().includes(requested.toLowerCase()) ||
+        requested.toLowerCase().includes(service.service_name.toLowerCase())
+      ) {
         score += 3;
       }
-      
+
       // Score based on display name similarity
-      if (service.service_display_name.toLowerCase().includes(requested.toLowerCase())) {
+      if (
+        service.service_display_name
+          .toLowerCase()
+          .includes(requested.toLowerCase())
+      ) {
         score += 2;
       }
-      
+
       // Score based on semantic similarity
-      if (this.isSimilarServiceName(requested.toLowerCase(), service.service_display_name.toLowerCase())) {
+      if (
+        this.isSimilarServiceName(
+          requested.toLowerCase(),
+          service.service_display_name.toLowerCase(),
+        )
+      ) {
         score += 1;
       }
-      
+
       return { service, score };
     });
-    
+
     // Return top matches (score > 0)
     return similarities
-      .filter(item => item.score > 0)
+      .filter((item) => item.score > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, 3) // Return top 3 matches
-      .map(item => item.service);
+      .map((item) => item.service);
   }
 }
 
@@ -1113,7 +1328,7 @@ This is the first tool to use when confirming any API functionality. Use this to
 
 1. **API verification (Primary Use)** - Always check API availability and structure FIRST before implementing any API integration
 2. **Frontend form development** - When you need to know what fields to include in forms or data entry pages
-3. **API integration** - When implementing API calls to determine request/response structure 
+3. **API integration** - When implementing API calls to determine request/response structure
 4. **Service-level queries** - When you need to list all interfaces in a specific service (e.g., "Show all methods in customer service")
 5. **Method-level queries** - When you need to find specific operations by keyword (e.g., "Find customer search method")
 6. **Field-level parsing** - When you need detailed field information for frontend validation or display
@@ -1143,7 +1358,7 @@ Returns: Details about customer retrieval endpoint, required fields, and respons
 
 <example>
 User: "Show all methods in 客户拜访 service"
-Assistant: Uses QueryApiTool with service_name="customer" (normalized from 客户拜访), no operation_keyword  
+Assistant: Uses QueryApiTool with service_name="customer" (normalized from 客户拜访), no operation_keyword
 Returns: All available methods in the customer service
 </example>
 
@@ -1155,13 +1370,13 @@ Returns: Request fields, types, and descriptions for project submission endpoint
 
 <example>
 User: "Find the user management API"
-Assistant: Uses QueryApiTool with service_name="user|employee|staff"  
+Assistant: Uses QueryApiTool with service_name="user|employee|staff"
 Returns: Services matching any of these terms
 </example>
 
 <example>
 User: "How to work with customers in Chinese?"
-Assistant: Uses QueryApiTool with service_name="客户|customer|客戶"  
+Assistant: Uses QueryApiTool with service_name="客户|customer|客戶"
 Returns: Services matching any of these translation terms
 </example>
 
@@ -1182,16 +1397,19 @@ Total results are limited to 20,000 matches for performance, similar to ripGrep.
 /**
  * Implementation of the Query API tool
  * This tool is designed specifically for LLMs to query API documentation
- * It can identify user intent, automatically query API documentation stored in 
+ * It can identify user intent, automatically query API documentation stored in
  * path.join(config.storage.getGeminiDir(), 'api'), and return structured field information.
  */
-export class QueryApiTool extends BaseDeclarativeTool<QueryApiToolParams, ToolResult> {
+export class QueryApiTool extends BaseDeclarativeTool<
+  QueryApiToolParams,
+  ToolResult
+> {
   static readonly Name: string = ToolNames.QUERY_API;
 
   constructor(private readonly config: Config) {
     super(
       QueryApiTool.Name,
-      'QueryApi',
+      ToolDisplayNames.QUERY_API,
       queryApiToolDescription,
       Kind.Search,
       {
@@ -1199,17 +1417,19 @@ export class QueryApiTool extends BaseDeclarativeTool<QueryApiToolParams, ToolRe
         properties: {
           service_name: {
             type: 'string',
-            description: "Service name to search within (e.g., \"group\", \"order\", \"user\") or regex pattern to match service structures (e.g., \"\\s+Api\", \"\\s+服务\", \"\\s+接口\"). This is extracted from the filename: e.g., hr分组服务-HrGroupApi.md → \"group\". Service names must not contain spaces or special characters except hyphens and underscores. Valid characters: alphanumeric characters, hyphens, underscores, and Chinese characters. Invalid characters: spaces, < > : \" | ? * and other special characters.",
+            description:
+              'Service name to search within (e.g., "group", "order", "user") or regex pattern to match service structures (e.g., "\\s+Api", "\\s+服务", "\\s+接口"). This is extracted from the filename: e.g., hr分组服务-HrGroupApi.md → "group". Service names must not contain spaces or special characters except hyphens and underscores. Valid characters: alphanumeric characters, hyphens, underscores, and Chinese characters. Invalid characters: spaces, < > : " | ? * and other special characters.',
           },
           operation_keyword: {
             type: 'string',
-            description: 'Operation keyword to filter specific methods (e.g., "save", "query", "get", "create", "分页查询", "保存", "获取", "更新"). Leave empty to list all methods in the service.',
-          }
+            description:
+              'Operation keyword to filter specific methods (e.g., "save", "query", "get", "create", "分页查询", "保存", "获取", "更新"). Leave empty to list all methods in the service.',
+          },
         },
         required: ['service_name'],
       },
       false, // isOutputMarkdown - return JSON for LLM processing
-      false  // canUpdateOutput
+      false, // canUpdateOutput
     );
   }
 
@@ -1233,7 +1453,7 @@ export class QueryApiTool extends BaseDeclarativeTool<QueryApiToolParams, ToolRe
     if (/[<>:"|?*]/.test(params.service_name)) {
       return "The 'service_name' parameter contains invalid characters.";
     }
-    
+
     // Explicitly prevent spaces and other special characters that could cause issues
     // Allow only alphanumeric characters, hyphens, underscores, and Chinese characters
     if (/[^a-zA-Z0-9\u4e00-\u9fa5\-_]/.test(params.service_name)) {

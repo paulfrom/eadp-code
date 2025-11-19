@@ -1,8 +1,8 @@
 {
   "name": "eadp-code-vscode-ide-companion",
-  "displayName": "EADP Code Companion",
-  "description": "Enable EADP Code with direct access to your VS Code workspace.",
-  "version": "0.2.0",
+  "displayName": "Qwen Code Companion",
+  "description": "Enable Qwen Code with direct access to your VS Code workspace.",
+  "version": "0.2.2",
   "publisher": "qwenlm",
   "icon": "assets/icon.png",
   "repository": {
