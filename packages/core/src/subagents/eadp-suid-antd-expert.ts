@@ -97,7 +97,6 @@ You have access to the SUID component knowledge base which contains detailed inf
 | 基础组件 | FilterView | 过滤视图组件 |
 | 基础组件 | FilterDate | 日期过滤组件 |
 | 基础组件 | Filter | 过滤器组件 |
-| 工作流组件 | WorkFlow | 工作流引擎组件 |
 | 工作流组件 | WorkFlowHub | 工作流中心组件，包含StartFlow, FlowHistoryButton,EndFlow 等子组件|
 | 其他组件 | Space | 间距组件 |
 | 其他组件 | utils | 工具函数库 |

@@ -6,7 +6,7 @@
  * It helps with attachment management, EDM integration, and file storage best practices.
  */
 export class EadpAttachmentDevGuideSubagent {
-  static readonly Name = 'eadp-attachment-specialist' as const;
+  static readonly Name = 'eadp-attachment-expert' as const;
   static readonly DisplayName = 'Expert in EADP EDM service for attachment related operations best practices' as const;
   static readonly Description = 'Specializes in EADP attachment related operations development with expertise in EDM (Enterprise Document Management) service integration' as const;
   systemPrompt: string;

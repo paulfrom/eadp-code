@@ -92,59 +92,66 @@ export const initCommand: SlashCommand = {
     return {
       type: 'submit_prompt',
       content: `
-      You are EADP Code, an interactive CLI agent. Analyze the current directory and generate a comprehensive ${contextFileName} file to be used as instructional context for future interactions.
+      你是 EADP Code，一个交互式 CLI 代理。分析当前目录并生成一个全面的 ${contextFileName} 文件，用作未来交互的说明上下文。
 
-**Analysis Process:**
+**分析流程：**
 
-1. **Initial Exploration:**
-   - Begin by listing all files and directories to understand the high-level structure.
-   - Check for a \`README.md\` or \`README.txt\` file and read it if present—it often contains critical project context.
+1. **初步探索：**
+   - 首先列出所有文件和目录以了解高层结构。
+   - 检查是否存在 \`README.md\` 或 \`README.txt\` 文件并阅读，它通常包含关键的项目上下文。
 
-2. **Iterative Deep Dive (up to 10 files):**
-   - Based on initial findings, prioritize reading key files that reveal the project’s nature:
-     - For **frontend projects**: examine \`package.json\`, \`src/\`, and any React component files.
-     - For **backend projects**: examine \`build.gradle\`, \`settings.gradle\`, and Java source files under \`src/main/java\`.
-   - Use insights from each file to guide the selection of subsequent files. You do not need to pre-select all 10 files—let your analysis evolve iteratively.
+2. **迭代深入（最多10个文件）：**
+   - 根据初步发现，优先阅读能揭示项目性质的关键文件：
+     - 对于**前端项目**：检查 \`package.json\`、\`src/\` 和任何 React 组件文件。
+     - 对于**后端项目**：检查 \`build.gradle\`、\`settings.gradle\` 和 \`src/main/java\` 下的 Java 源文件。
+   - 使用每个文件的见解来指导后续文件的选择。你不需要预先选择全部10个文件——让分析迭代发展。
 
-3. **Project Type Identification:**
-   - **Frontend Project**: Identified by the presence of \`package.json\` and React-related dependencies. **All frontend projects must use the \`@sei/suid\` package**. 
-   Your analysis must focus on how this package is integrated and used.
-   - **Backend Project**: Identified by \`build.gradle\` and Java source structure. **All backend projects belong to the \`com.changhong.sei\` package namespace** and use one or more of the following SEI SDKs:
-     - \`sei-cloud-nacos-starter\`: for microservice registration, discovery, and configuration.
-     - \`sei-basic-api\`: for accessing user, organization, company, role, and permission data.
-     - \`sei-edm-sdk\`: for attachment/file storage operations.
-     - \`sei-notify-sdk\`: for sending notifications (SMS, email, internal messages).
-     - \`sei-serial-sdk\`: for generating unified serial numbers (e.g., order IDs).
-   - **There are no “non-code” projects**. Every directory analyzed is either a frontend or backend code project as defined above.
+3. **项目类型识别：**
+   - **前端项目**：通过存在 \`package.json\` 和 React 相关依赖来识别。**所有前端项目必须使用 \`@sei/suid\` 包**。
+   - **后端项目**：通过 \`build.gradle\` 和 Java 源代码结构来识别。**所有后端项目都属于 \`com.changhong.sei\` 包命名空间**。
+   - **没有"非代码"项目**。每个分析的目录都是如上定义的前端或后端代码项目。
 
-**${contextFileName} Content Generation:**
+**${contextFileName} 内容生成：**
 
-# Frontend Projects
-- **Technology Stack**: React  
-- **Dependency Analysis**: Analyze project dependencies via \`package.json\`  
-- **Mandatory Package**: All frontend projects must include a reference to \`@sei/suid\`  
-- **Analysis Focus**: Deeply analyze how \`@sei/suid\` is utilized in the project  
-- **Specification Level**: Elevate the usage specifications of \`@sei/suid\` to the highest level  
-- **Example Requirement**: Provide example code demonstrating proper integration and usage of \`@sei/suid\` in React components  
+# 后端项目
+- **技术栈**: Java
+- **依赖分析**: 通过 \`build.gradle\` 分析项目依赖
+- **模块结构**: \`settings.gradle\` 中定义的项目模块分类
 
-# Backend Projects
-- **Technology Stack**: Java  
-- **Dependency Analysis**: Analyze project dependencies via \`build.gradle\`  
-- **Module Structure**: Project module classification defined in \`settings.gradle\`  
-- **Mandatory Packages**: All backend projects must include packages under \`com.changhong.sei\`  
-- **Key Components and Usage**:  
-  - \`sei-cloud-nacos-starter\`: Microservice governance suite for service registration and discovery  
-  - \`sei-basic-api\`: Basic application suite providing APIs for user, organization, company, permission, and position management  
-  - \`sei-edm-sdk\`: Attachment storage services for file upload and management  
-  - \`sei-notify-sdk\`: Message sending services for system notifications and alerts  
-  - \`sei-serial-sdk\`: Unified order number services for generating unique order identifiers  
-- **Specification Level**: Elevate the usage specifications of these components to the highest level  
-- **Example Requirement**: Provide complete example code demonstrating proper configuration and invocation of each component in Java projects
+**后端分析流程：**
+1. **公共方法分析**: 首先，检查非业务领域并分析通用的工具方法、帮助类和共享服务。寻找像 utils、common、helper、core、base、framework 或类似命名模式的包。
+2. **SEI 包审查**: 在依赖文件 (build.gradle) 中识别并分析已引用的 SEI 包，包括：
+   - \`sei-cloud-nacos-starter\`: 用于微服务注册、发现和配置。
+   - \`sei-basic-api\`: 用于访问用户、组织、公司、角色和权限数据。
+   - \`sei-edm-sdk\`: 用于附件/文件存储操作。
+   - \`sei-notify-sdk\`: 用于发送通知（短信、邮件、内部消息）。
+   - \`sei-serial-sdk\`: 用于生成统一序列号（例如，订单ID）。
+3. **总结**: 结合公共方法和 SEI 包使用的分析，总结其主要用途以及如何支持项目架构。
+4. **业务分析**: 最后，分析项目的业务特性、领域逻辑、控制器、服务和数据模型以了解核心功能。
+5. **编程风格**: 记录项目的关键编程风格、编码约定、架构模式和开发实践。
 
-**Final Output:**
+**关键组件和用途**：
+- \`sei-cloud-nacos-starter\`: 用于服务注册和发现的微服务治理套件
+- \`sei-basic-api\`: 提供用户、组织、公司、权限和职位管理API的基本应用套件
+- \`sei-edm-sdk\`: 用于文件上传和管理的附件存储服务
+- \`sei-notify-sdk\`: 用于系统通知和警报的消息发送服务
+- \`sei-serial-sdk\`: 用于生成唯一订单标识符的统一订单号服务
 
-Write the complete content to the \`${contextFileName}\` file. The output must be well-formatted Markdown.
-You are EADP Code, an interactive CLI agent. Analyze the current directory and generate a comprehensive ${contextFileName} file to be used as instructional context for future interactions.
+# 前端项目
+- **技术栈**: React
+- **依赖分析**: 通过 \`package.json\` 分析项目依赖
+- **必需包**: 所有前端项目必须包含对 \`@sei/suid\` 的引用
+
+**前端分析流程：**
+1. **公共组件分析**: 首先，检查项目中现有的公共/通用组件。特别查找名为 \`components\`、\`common\`、\`shared\`、\`utils\` 或类似模式的文件夹。记录已存在可重用组件及其用途。
+2. **SEI 包分析**: 分析项目中如何使用 \`@sei/suid\`，包括导入的组件、样式和包中利用的功能。
+3. **SEI 专家视角**: 从 SEI 前端专家的角度，评估项目如何使用 \`@sei/suid\` 组件并遵循 SEI 设计原则和最佳实践。
+4. **项目总结**: 基于组件分析和 SEI 集成提供项目的全面总结。
+5. **编程风格**: 记录符合 SEI 前端标准的项目关键编程风格、组件架构、状态管理模式和开发实践。
+
+**最终输出：**
+
+将完整内容写入 \`${contextFileName}\` 文件。输出必须是格式良好的 Markdown。
 `,
     };
   },

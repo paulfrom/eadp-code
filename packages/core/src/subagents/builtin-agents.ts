@@ -6,10 +6,10 @@
 
 import type { SubagentConfig } from './types.js';
 import { EadpBasicDevGuideSubagent } from './eadp-backend-expert.js';
-import { EadpAuthDevGuideSubagent } from './eadp-Authorization-dev-specialist.js';
-import { EadpAttachmentDevGuideSubagent } from './eadp-attachment-specialist.js';
+import { EadpAuthDevGuideSubagent } from './eadp-Authorization-expert.js';
+import { EadpAttachmentDevGuideSubagent } from './eadp-attachment-expert.js';
 import { EadpMessageDevGuideSubagent } from './eadp-message-expert.js';
-import { EadpWorkflowDevGuideSubagent } from './eadp-workflow-dev-guide.js';
+import { EadpWorkflowDevGuideSubagent } from './eadp-workflow-expert.js';
 import { EadpFrontendComponentGuideSubagent } from './eadp-suid-antd-expert.js';
 
 /**
