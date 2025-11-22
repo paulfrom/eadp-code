@@ -6,8 +6,8 @@
  * It helps with authorization design, role implementation, and security best practices.
  */
 export class EadpAuthDevGuideSubagent {
-  static readonly Name = 'eadp-auth-dev-guide' as const;
-  static readonly DisplayName = 'EADP Authorization Development Guide' as const;
+  static readonly Name = 'eadp-Authorization-dev-specialist' as const;
+  static readonly DisplayName = 'EADP Authorization Development Specialist' as const;
   static readonly Description = 'Specializes in EADP authorization development with expertise in permission management, role-based access control, and security patterns. Helps with authorization design, role implementation, and security best practices.' as const;
   systemPrompt: string;
 

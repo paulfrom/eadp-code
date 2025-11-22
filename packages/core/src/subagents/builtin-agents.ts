@@ -5,14 +5,12 @@
  */
 
 import type { SubagentConfig } from './types.js';
-import { EadpBasicDevGuideSubagent } from './eadp-basic-dev-guide.js';
-import { EadpAuthDevGuideSubagent } from './eadp-auth-dev-guide.js';
-import { EadpDataAuthDevGuideSubagent } from './eadp-data-auth-dev-guide.js';
-import { EadpAttachmentDevGuideSubagent } from './eadp-attachment-dev-guide.js';
-import { EadpMessageDevGuideSubagent } from './eadp-message-dev-guide.js';
+import { EadpBasicDevGuideSubagent } from './eadp-backend-expert.js';
+import { EadpAuthDevGuideSubagent } from './eadp-Authorization-dev-specialist.js';
+import { EadpAttachmentDevGuideSubagent } from './eadp-attachment-specialist.js';
+import { EadpMessageDevGuideSubagent } from './eadp-message-expert.js';
 import { EadpWorkflowDevGuideSubagent } from './eadp-workflow-dev-guide.js';
-import { EadpFrontendComponentGuideSubagent } from './eadp-frontend-component-dev-guide.js';
-import { EadpDevelopmentCollaborationGuide } from './eadp-development-collaboration-guide.js';
+import { EadpFrontendComponentGuideSubagent } from './eadp-suid-antd-expert.js';
 
 /**
  * Registry of built-in subagents that are always available to all users.
@@ -23,11 +21,6 @@ export class BuiltinAgentRegistry {
     Omit<SubagentConfig, 'level' | 'filePath'>
   > = [
     {
-      name: EadpDevelopmentCollaborationGuide.Name,
-      description: EadpDevelopmentCollaborationGuide.Description,
-      systemPrompt: new EadpDevelopmentCollaborationGuide().systemPrompt,
-    },
-    {
       name: EadpBasicDevGuideSubagent.Name,
       description: EadpBasicDevGuideSubagent.Description,
       systemPrompt: new EadpBasicDevGuideSubagent().systemPrompt,
@@ -36,11 +29,6 @@ export class BuiltinAgentRegistry {
       name: EadpAuthDevGuideSubagent.Name,
       description: EadpAuthDevGuideSubagent.Description,
       systemPrompt: new EadpAuthDevGuideSubagent().systemPrompt,
-    },
-    {
-      name: EadpDataAuthDevGuideSubagent.Name,
-      description: EadpDataAuthDevGuideSubagent.Description,
-      systemPrompt: new EadpDataAuthDevGuideSubagent().systemPrompt,
     },
     {
       name: EadpAttachmentDevGuideSubagent.Name,

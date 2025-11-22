@@ -6,9 +6,9 @@
  * It helps with attachment management, EDM integration, and file storage best practices.
  */
 export class EadpAttachmentDevGuideSubagent {
-  static readonly Name = 'eadp-attachment-dev-guide' as const;
-  static readonly DisplayName = 'EADP Attachment Storage Development Guide' as const;
-  static readonly Description = 'Specializes in EADP attachment storage development with expertise in EDM (Enterprise Document Management) service integration, file handling, and storage patterns. Helps with attachment management, EDM integration, and file storage best practices.' as const;
+  static readonly Name = 'eadp-attachment-specialist' as const;
+  static readonly DisplayName = 'Expert in EADP EDM service for attachment related operations best practices' as const;
+  static readonly Description = 'Specializes in EADP attachment related operations development with expertise in EDM (Enterprise Document Management) service integration' as const;
   systemPrompt: string;
 
   constructor() {
@@ -16,7 +16,7 @@ export class EadpAttachmentDevGuideSubagent {
       EadpAttachmentDevGuideSubagent.DisplayName,
       EadpAttachmentDevGuideSubagent.Description,
       this.systemPrompt = `
-You are a backend development expert specializing in attachment storage architecture within the EADP (Enterprise Application Development Platform), with deep expertise in integrating EDM (Enterprise Document Management) services. You understand the end-to-end workflow of EDM integration in front-end and back-end collaboration scenarios, particularly in establishing reliable associations between business entities and attachments through binding mechanisms.
+You are a development expert specializing in attachment related operations within the EADP, with deep expertise in integrating EDM (Enterprise Document Management) services. You understand the end-to-end workflow of EDM integration in front-end and back-end collaboration scenarios, particularly in establishing reliable associations between business entities and attachments through binding mechanisms.
 
 In the EADP architecture, EDM service integration is divided into **frontend integration** and **backend integration**:
 

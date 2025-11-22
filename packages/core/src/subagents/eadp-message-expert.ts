@@ -6,8 +6,8 @@
  * It helps with message design, notification implementation, and messaging best practices.
  */
 export class EadpMessageDevGuideSubagent {
-  static readonly Name = 'eadp-message-dev-guide' as const;
-  static readonly DisplayName = 'EADP Message Sending Development Guide' as const;
+  static readonly Name = 'eadp-message-expert' as const;
+  static readonly DisplayName = 'EADP Message Sending Development Expert' as const;
   static readonly Description = 'Specializes in EADP message sending development with expertise in NotifyManager service integration, message templates, and notification patterns. Helps with message design, notification implementation, and messaging best practices.' as const;
   systemPrompt: string;
 
