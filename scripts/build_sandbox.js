@@ -100,15 +100,14 @@ execSync(
   },
 );
 
-console.log('packing @qwen-code/qwen-code-core ...');
+console.log('packing eadp-code-core ...');
 const corePackageDir = join('packages', 'core');
 rmSync(join(corePackageDir, 'dist', 'qwen-code-core-*.tgz'), {
   force: true,
 });
-execSync(
-  `npm pack -w @qwen-code/qwen-code-core --pack-destination ./packages/core/dist`,
-  { stdio: 'ignore' },
-);
+execSync(`npm pack -w eadp-code-core --pack-destination ./packages/core/dist`, {
+  stdio: 'ignore',
+});
 
 const packageVersion = JSON.parse(
   readFileSync(join(process.cwd(), 'package.json'), 'utf-8'),

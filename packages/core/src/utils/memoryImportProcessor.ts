@@ -118,6 +118,12 @@ function findImports(
     // Extract the path (everything after @)
     const importPath = content.slice(i + 1, j);
 
+    // 忽略 @sei/suid 导入
+    if (importPath === 'sei/suid') {
+      i = i + 8;
+      continue;
+    }
+
     // Basic validation (starts with ./ or / or letter)
     if (
       importPath.length > 0 &&

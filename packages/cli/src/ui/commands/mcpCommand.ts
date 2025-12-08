@@ -11,7 +11,7 @@ import type {
   MessageActionReturn,
 } from './types.js';
 import { CommandKind } from './types.js';
-import type { DiscoveredMCPPrompt } from '@qwen-code/qwen-code-core';
+import type { DiscoveredMCPPrompt } from 'eadp-code-core';
 import {
   DiscoveredMCPTool,
   getMCPDiscoveryState,
@@ -21,7 +21,7 @@ import {
   getErrorMessage,
   MCPOAuthTokenStorage,
   MCPOAuthProvider,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import { appEvents, AppEvent } from '../../utils/events.js';
 import { MessageType, type HistoryItemMcpStatus } from '../types.js';
 import { t } from '../../i18n/index.js';

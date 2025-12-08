@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import type { ApprovalMode, Config } from '@qwen-code/qwen-code-core';
+import type { ApprovalMode, Config } from 'eadp-code-core';
 import type { LoadedSettings, SettingScope } from '../../config/settings.js';
 
 interface UseApprovalModeCommandReturn {

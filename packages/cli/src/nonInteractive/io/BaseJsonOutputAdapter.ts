@@ -12,12 +12,12 @@ import type {
   SessionMetrics,
   ServerGeminiStreamEvent,
   TaskResultDisplay,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import {
   GeminiEventType,
   ToolErrorType,
   parseAndFormatApiError,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import type { Part, GenerateContentResponseUsageMetadata } from '@google/genai';
 import type {
   CLIAssistantMessage,

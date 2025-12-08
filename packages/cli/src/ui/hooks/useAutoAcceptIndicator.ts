@@ -4,11 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  type ApprovalMode,
-  APPROVAL_MODES,
-  type Config,
-} from '@qwen-code/qwen-code-core';
+import { type ApprovalMode, APPROVAL_MODES, type Config } from 'eadp-code-core';
 import { useEffect, useState } from 'react';
 import { useKeypress } from './useKeypress.js';
 import type { HistoryItemWithoutId } from '../types.js';

@@ -7,12 +7,8 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import type { PartListUnion, PartUnion } from '@google/genai';
-import type { AnyToolInvocation, Config } from '@qwen-code/qwen-code-core';
-import {
-  getErrorMessage,
-  isNodeError,
-  unescapePath,
-} from '@qwen-code/qwen-code-core';
+import type { AnyToolInvocation, Config } from 'eadp-code-core';
+import { getErrorMessage, isNodeError, unescapePath } from 'eadp-code-core';
 import type { HistoryItem, IndividualToolCallDisplay } from '../types.js';
 import { ToolCallStatus } from '../types.js';
 import type { UseHistoryManagerReturn } from './useHistoryManager.js';
@@ -169,6 +165,11 @@ export async function handleAtCommand({
       onDebugMessage(
         'Lone @ detected, will be treated as text in the modified query.',
       );
+      continue;
+    }
+
+    if (originalAtPath.includes('@sei/suid')) {
+      onDebugMessage('@sei/suid detected, skipping processing.');
       continue;
     }
 

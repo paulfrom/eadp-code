@@ -16,7 +16,7 @@ import {
   SlashCommandStatus,
   ToolConfirmationOutcome,
   IdeClient,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import { useSessionStats } from '../contexts/SessionContext.js';
 import type {
   Message,

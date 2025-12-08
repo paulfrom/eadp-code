@@ -60,6 +60,7 @@ import { ToolRegistry } from '../tools/tool-registry.js';
 import { WebFetchTool } from '../tools/web-fetch.js';
 import { WebSearchTool } from '../tools/web-search/index.js';
 import { WriteFileTool } from '../tools/write-file.js';
+import { QueryApiTool } from '../tools/query-api.js';
 
 // Other modules
 import { ideContextStore } from '../ide/ideContext.js';
@@ -1369,6 +1370,7 @@ export class Config {
     registerCoreTool(TodoWriteTool, this);
     !this.sdkMode && registerCoreTool(ExitPlanModeTool, this);
     registerCoreTool(WebFetchTool, this);
+    registerCoreTool(QueryApiTool, this);
     // Conditionally register web search tool if web search provider is configured
     // buildWebSearchConfig ensures qwen-oauth users get dashscope provider, so
     // if tool is registered, config must exist

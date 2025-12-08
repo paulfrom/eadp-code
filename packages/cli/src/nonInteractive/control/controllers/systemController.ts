@@ -26,7 +26,7 @@ import {
   MCPServerConfig,
   AuthProviderType,
   type MCPOAuthConfig,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 
 export class SystemController extends BaseController {
   /**

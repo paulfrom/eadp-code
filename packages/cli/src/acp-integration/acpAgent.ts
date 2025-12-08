@@ -6,7 +6,7 @@
 
 import type { ReadableStream, WritableStream } from 'node:stream/web';
 
-import type { Config, ConversationRecord } from '@qwen-code/qwen-code-core';
+import type { Config, ConversationRecord } from 'eadp-code-core';
 import {
   APPROVAL_MODE_INFO,
   APPROVAL_MODES,
@@ -15,7 +15,7 @@ import {
   MCPServerConfig,
   SessionService,
   buildApiHistoryFromConversation,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import type { ApprovalModeValue } from './schema.js';
 import * as acp from './acp.js';
 import { AcpFileSystemService } from './service/filesystem.js';

@@ -16,12 +16,12 @@ import type {
   SubAgentApprovalRequestEvent,
   ToolEditConfirmationDetails,
   ToolInfoConfirmationDetails,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import {
   SubAgentEventType,
   ToolConfirmationOutcome,
   TodoWriteTool,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import type * as acp from '../acp.js';
 import { EventEmitter } from 'node:events';
 

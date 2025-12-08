@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ChatRecord } from '@qwen-code/qwen-code-core';
+import type { ChatRecord } from 'eadp-code-core';
 import type { Content } from '@google/genai';
 import type { SessionContext } from './types.js';
 import { MessageEmitter } from './emitters/MessageEmitter.js';

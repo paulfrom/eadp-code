@@ -108,6 +108,7 @@ export * from './tools/sdk-control-client-transport.js';
 export * from './tools/task.js';
 export * from './tools/todoWrite.js';
 export * from './tools/exitPlanMode.js';
+export * from './tools/query-api.js';
 
 // MCP OAuth
 export { MCPOAuthProvider } from './mcp/oauth-provider.js';

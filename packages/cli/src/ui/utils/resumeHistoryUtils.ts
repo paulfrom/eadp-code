@@ -12,7 +12,7 @@ import type {
   AnyDeclarativeTool,
   ToolResultDisplay,
   SlashCommandRecordPayload,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import type { HistoryItem, HistoryItemWithoutId } from '../types.js';
 import { ToolCallStatus } from '../types.js';
 

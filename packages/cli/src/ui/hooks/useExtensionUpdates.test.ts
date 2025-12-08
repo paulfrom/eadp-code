@@ -15,7 +15,7 @@ import {
 } from '../../config/extension.js';
 import { createExtension } from '../../test-utils/createExtension.js';
 import { useExtensionUpdates } from './useExtensionUpdates.js';
-import { QWEN_DIR, type GeminiCLIExtension } from '@qwen-code/qwen-code-core';
+import { QWEN_DIR, type GeminiCLIExtension } from 'eadp-code-core';
 import { renderHook, waitFor } from '@testing-library/react';
 import { MessageType } from '../types.js';
 import { ExtensionEnablementManager } from '../../config/extensions/extensionEnablement.js';

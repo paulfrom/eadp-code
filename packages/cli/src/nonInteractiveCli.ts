@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Config, ToolCallRequestInfo } from '@qwen-code/qwen-code-core';
+import type { Config, ToolCallRequestInfo } from 'eadp-code-core';
 import { isSlashCommand } from './ui/utils/commandUtils.js';
 import type { LoadedSettings } from './config/settings.js';
 import {
@@ -18,7 +18,7 @@ import {
   InputFormat,
   uiTelemetryService,
   parseAndFormatApiError,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import type { Content, Part, PartListUnion } from '@google/genai';
 import type { CLIUserMessage, PermissionMode } from './nonInteractive/types.js';
 import type { JsonOutputAdapterInterface } from './nonInteractive/io/BaseJsonOutputAdapter.js';

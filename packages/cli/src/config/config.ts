@@ -26,7 +26,7 @@ import {
   type ResumedSessionData,
   type FileFilteringOptions,
   type MCPServerConfig,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import { extensionsCommand } from '../commands/extensions.js';
 import type { Settings } from './settings.js';
 import yargs, { type Argv } from 'yargs';

@@ -6,7 +6,7 @@
 
 import type { ICommandLoader } from './types.js';
 import type { SlashCommand } from '../ui/commands/types.js';
-import type { Config } from '@qwen-code/qwen-code-core';
+import type { Config } from 'eadp-code-core';
 import { aboutCommand } from '../ui/commands/aboutCommand.js';
 import { agentsCommand } from '../ui/commands/agentsCommand.js';
 import { approvalModeCommand } from '../ui/commands/approvalModeCommand.js';
@@ -38,6 +38,8 @@ import { themeCommand } from '../ui/commands/themeCommand.js';
 import { toolsCommand } from '../ui/commands/toolsCommand.js';
 import { vimCommand } from '../ui/commands/vimCommand.js';
 import { setupGithubCommand } from '../ui/commands/setupGithubCommand.js';
+import { checkCommand } from '../ui/commands/checkCommand.js';
+import { eadpCommand } from '../ui/commands/eadpCommand.js';
 
 /**
  * Loads the core, hard-coded slash commands that are an integral part
@@ -86,6 +88,8 @@ export class BuiltinCommandLoader implements ICommandLoader {
       vimCommand,
       setupGithubCommand,
       terminalSetupCommand,
+      checkCommand,
+      eadpCommand,
     ];
 
     return allDefinitions.filter((cmd): cmd is SlashCommand => cmd !== null);

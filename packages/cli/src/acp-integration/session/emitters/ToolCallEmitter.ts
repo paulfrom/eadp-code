@@ -14,11 +14,7 @@ import type {
 } from '../types.js';
 import type * as acp from '../../acp.js';
 import type { Part } from '@google/genai';
-import {
-  TodoWriteTool,
-  Kind,
-  ExitPlanModeTool,
-} from '@qwen-code/qwen-code-core';
+import { TodoWriteTool, Kind, ExitPlanModeTool } from 'eadp-code-core';
 
 /**
  * Unified tool call event emitter.

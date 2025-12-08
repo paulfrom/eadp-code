@@ -8,7 +8,7 @@ import { render } from 'ink-testing-library';
 import { describe, it, expect, vi } from 'vitest';
 import { Footer } from './Footer.js';
 import * as useTerminalSize from '../hooks/useTerminalSize.js';
-import { tildeifyPath } from '@qwen-code/qwen-code-core';
+import { tildeifyPath } from 'eadp-code-core';
 import { type UIState, UIStateContext } from '../contexts/UIStateContext.js';
 import { ConfigContext } from '../contexts/ConfigContext.js';
 import { SettingsContext } from '../contexts/SettingsContext.js';
@@ -18,9 +18,8 @@ import { VimModeProvider } from '../contexts/VimModeContext.js';
 vi.mock('../hooks/useTerminalSize.js');
 const useTerminalSizeMock = vi.mocked(useTerminalSize.useTerminalSize);
 
-vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import('@qwen-code/qwen-code-core')>();
+vi.mock('eadp-code-core', async (importOriginal) => {
+  const original = await importOriginal<typeof import('eadp-code-core')>();
   return {
     ...original,
     shortenPath: (p: string, len: number) => {

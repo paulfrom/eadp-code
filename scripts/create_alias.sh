@@ -22,8 +22,8 @@ echo "  ${ALIAS_COMMAND}"
 echo ""
 
 # Check if the alias already exists
-if grep -q "alias qwen=" "${CONFIG_FILE}"; then
-    echo "A 'qwen' alias already exists in ${CONFIG_FILE}. No changes were made."
+if grep -q "alias eadp=" "${CONFIG_FILE}"; then
+    echo "A 'eadp' alias already exists in ${CONFIG_FILE}. No changes were made."
     exit 0
 fi
 

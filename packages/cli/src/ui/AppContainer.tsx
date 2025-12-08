@@ -39,7 +39,7 @@ import {
   getErrorMessage,
   getAllGeminiMdFilenames,
   ShellExecutionService,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import { buildResumedHistoryItems } from './utils/resumeHistoryUtils.js';
 import { validateAuthMethod } from '../config/auth.js';
 import { loadHierarchicalGeminiMemory } from '../config/config.js';

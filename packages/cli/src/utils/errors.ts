@@ -4,14 +4,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Config } from '@qwen-code/qwen-code-core';
+import type { Config } from 'eadp-code-core';
 import {
   OutputFormat,
   JsonFormatter,
   parseAndFormatApiError,
   FatalTurnLimitedError,
   FatalCancellationError,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {

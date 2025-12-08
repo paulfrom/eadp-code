@@ -1,5 +1,5 @@
 {
-  "name": "@qwen-code/qwen-code",
+  "name": "eadp-code",
   "version": "0.4.0",
   "engines": {
     "node": ">=20.0.0"
@@ -68,7 +68,7 @@
     }
   },
   "bin": {
-    "qwen": "dist/cli.js"
+    "eadp": "dist/cli.js"
   },
   "files": [
     "dist/",

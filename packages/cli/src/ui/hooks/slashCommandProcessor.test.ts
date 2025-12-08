@@ -23,15 +23,14 @@ import {
   SlashCommandStatus,
   ToolConfirmationOutcome,
   makeFakeConfig,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 
 const { logSlashCommand } = vi.hoisted(() => ({
   logSlashCommand: vi.fn(),
 }));
 
-vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import('@qwen-code/qwen-code-core')>();
+vi.mock('eadp-code-core', async (importOriginal) => {
+  const original = await importOriginal<typeof import('eadp-code-core')>();
   return {
     ...original,
     logSlashCommand,

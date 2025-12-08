@@ -25,7 +25,7 @@ import type {
   UserTierId,
   IdeInfo,
   FallbackIntent,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import type { DOMElement } from 'ink';
 import type { SessionStatsState } from '../contexts/SessionContext.js';
 import type { ExtensionUpdateState } from '../state/extensions.js';

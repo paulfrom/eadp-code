@@ -11,7 +11,7 @@ import {
   type SessionListItem,
   type ListSessionsResult,
   getGitBranch,
-} from '@qwen-code/qwen-code-core';
+} from 'eadp-code-core';
 import { theme } from '../semantic-colors.js';
 import { formatRelativeTime } from '../utils/formatters.js';
 

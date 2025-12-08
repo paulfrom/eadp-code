@@ -9,10 +9,7 @@ import { HistoryItemDisplay } from './HistoryItemDisplay.js';
 import { type HistoryItem, ToolCallStatus } from '../types.js';
 import { MessageType } from '../types.js';
 import { SessionStatsProvider } from '../contexts/SessionContext.js';
-import type {
-  Config,
-  ToolExecuteConfirmationDetails,
-} from '@qwen-code/qwen-code-core';
+import type { Config, ToolExecuteConfirmationDetails } from 'eadp-code-core';
 import { ToolGroupMessage } from './messages/ToolGroupMessage.js';
 import { renderWithProviders } from '../../test-utils/render.js';
 

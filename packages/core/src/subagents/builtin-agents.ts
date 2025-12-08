@@ -5,6 +5,12 @@
  */
 
 import type { SubagentConfig } from './types.js';
+import { EadpBasicDevGuideSubagent } from './eadp-backend-expert.js';
+import { EadpAuthDevGuideSubagent } from './eadp-Authorization-expert.js';
+import { EadpAttachmentDevGuideSubagent } from './eadp-attachment-expert.js';
+import { EadpMessageDevGuideSubagent } from './eadp-message-expert.js';
+import { EadpWorkflowDevGuideSubagent } from './eadp-workflow-expert.js';
+import { EadpFrontendComponentGuideSubagent } from './eadp-suid-antd-expert.js';
 
 /**
  * Registry of built-in subagents that are always available to all users.
@@ -14,6 +20,36 @@ export class BuiltinAgentRegistry {
   private static readonly BUILTIN_AGENTS: Array<
     Omit<SubagentConfig, 'level' | 'filePath'>
   > = [
+    {
+      name: EadpBasicDevGuideSubagent.Name,
+      description: EadpBasicDevGuideSubagent.Description,
+      systemPrompt: new EadpBasicDevGuideSubagent().systemPrompt,
+    },
+    {
+      name: EadpAuthDevGuideSubagent.Name,
+      description: EadpAuthDevGuideSubagent.Description,
+      systemPrompt: new EadpAuthDevGuideSubagent().systemPrompt,
+    },
+    {
+      name: EadpAttachmentDevGuideSubagent.Name,
+      description: EadpAttachmentDevGuideSubagent.Description,
+      systemPrompt: new EadpAttachmentDevGuideSubagent().systemPrompt,
+    },
+    {
+      name: EadpMessageDevGuideSubagent.Name,
+      description: EadpMessageDevGuideSubagent.Description,
+      systemPrompt: new EadpMessageDevGuideSubagent().systemPrompt,
+    },
+    {
+      name: EadpWorkflowDevGuideSubagent.Name,
+      description: EadpWorkflowDevGuideSubagent.Description,
+      systemPrompt: new EadpWorkflowDevGuideSubagent().systemPrompt,
+    },
+    {
+      name: EadpFrontendComponentGuideSubagent.Name,
+      description: EadpFrontendComponentGuideSubagent.Description,
+      systemPrompt: new EadpFrontendComponentGuideSubagent().systemPrompt,
+    },
     {
       name: 'general-purpose',
       description:
