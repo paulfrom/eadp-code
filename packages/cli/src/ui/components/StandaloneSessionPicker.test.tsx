@@ -8,13 +8,10 @@ import { render } from 'ink-testing-library';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { KeypressProvider } from '../contexts/KeypressContext.js';
 import { SessionPicker } from './SessionPicker.js';
-import type {
-  SessionListItem,
-  ListSessionsResult,
-} from '@qwen-code/qwen-code-core';
+import type { SessionListItem, ListSessionsResult } from 'eadp-code-core';
 
-vi.mock('@qwen-code/qwen-code-core', async () => {
-  const actual = await vi.importActual('@qwen-code/qwen-code-core');
+vi.mock('eadp-code-core', async () => {
+  const actual = await vi.importActual('eadp-code-core');
   return {
     ...actual,
     getGitBranch: vi.fn().mockReturnValue('main'),
