@@ -152,7 +152,6 @@ describe('useSlashCommandProcessor', () => {
           openModelDialog: mockOpenModelDialog,
           quit: mockSetQuittingMessages,
           setDebugMessage: vi.fn(),
-          toggleCorgiMode: vi.fn(),
         },
       ),
     );
@@ -908,7 +907,6 @@ describe('useSlashCommandProcessor', () => {
           vi.fn(), // openThemeDialog
           mockOpenAuthDialog,
           vi.fn(), // openEditorDialog
-          vi.fn(), // toggleCorgiMode
           mockSetQuittingMessages,
           vi.fn(), // openSettingsDialog
           vi.fn(), // openModelSelectionDialog

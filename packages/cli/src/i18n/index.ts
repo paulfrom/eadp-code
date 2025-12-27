@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Qwen team
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -8,15 +8,21 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { homedir } from 'node:os';
+import {
+  type SupportedLanguage,
+  getLanguageNameFromLocale,
+} from './languages.js';
 
-export type SupportedLanguage = 'en' | 'zh' | string; // Allow custom language codes
+export type { SupportedLanguage };
+export { getLanguageNameFromLocale };
 
 // State
 let currentLanguage: SupportedLanguage = 'en';
-let translations: Record<string, string> = {};
+let translations: Record<string, string | string[]> = {};
 
 // Cache
-type TranslationDict = Record<string, string>;
+type TranslationValue = string | string[];
+type TranslationDict = Record<string, TranslationValue>;
 const translationCache: Record<string, TranslationDict> = {};
 const loadingPromises: Record<string, Promise<TranslationDict>> = {};
 
@@ -51,10 +57,14 @@ export function detectSystemLanguage(): SupportedLanguage {
   const envLang = process.env['QWEN_CODE_LANG'] || process.env['LANG'];
   if (envLang?.startsWith('zh')) return 'zh';
   if (envLang?.startsWith('en')) return 'en';
+  if (envLang?.startsWith('ru')) return 'ru';
+  if (envLang?.startsWith('de')) return 'de';
 
   try {
     const locale = Intl.DateTimeFormat().resolvedOptions().locale;
     if (locale.startsWith('zh')) return 'zh';
+    if (locale.startsWith('ru')) return 'ru';
+    if (locale.startsWith('de')) return 'de';
   } catch {
     // Fallback to default
   }
@@ -222,7 +232,23 @@ export function getCurrentLanguage(): SupportedLanguage {
 
 export function t(key: string, params?: Record<string, string>): string {
   const translation = translations[key] ?? key;
+  if (Array.isArray(translation)) {
+    return key;
+  }
   return interpolate(translation, params);
+}
+
+/**
+ * Get a translation that is an array of strings.
+ * @param key The translation key
+ * @returns The array of strings, or an empty array if not found or not an array
+ */
+export function ta(key: string): string[] {
+  const translation = translations[key];
+  if (Array.isArray(translation)) {
+    return translation;
+  }
+  return [];
 }
 
 export async function initializeI18n(

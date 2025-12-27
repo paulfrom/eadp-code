@@ -55,7 +55,7 @@ export class ToolCallEmitter extends BaseEmitter {
     await this.sendUpdate({
       sessionUpdate: 'tool_call',
       toolCallId: params.callId,
-      status: 'in_progress',
+      status: params.status || 'pending',
       title,
       content: [],
       locations,
@@ -271,7 +271,18 @@ export class ToolCallEmitter extends BaseEmitter {
       // Handle functionResponse parts - stringify the response
       if ('functionResponse' in part && part.functionResponse) {
         try {
-          const responseText = JSON.stringify(part.functionResponse.response);
+          const resp = part.functionResponse.response as Record<
+            string,
+            unknown
+          >;
+          const outputField = resp['output'];
+          const errorField = resp['error'];
+          const responseText =
+            typeof outputField === 'string'
+              ? outputField
+              : typeof errorField === 'string'
+                ? errorField
+                : JSON.stringify(resp);
           result.push({
             type: 'content',
             content: { type: 'text', text: responseText },
